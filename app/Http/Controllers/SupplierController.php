@@ -47,7 +47,7 @@ class SupplierController extends Controller
     public function store(CreateSupplierRequest $request)
     {
         if( strpos($request->balance, ',') !== false ) {      
-            $request->balance = str_replace( ',', '', $request->balance );
+            $request['balance'] = str_replace( ',', '', $request->balance );
         }
         Supplier::create($request->all());
         return 1;
@@ -84,6 +84,9 @@ class SupplierController extends Controller
      */
     public function update(CreateSupplierRequest $request,  $id)
     {
+        if( strpos($request->balance, ',') !== false ) {      
+            $request['balance'] = str_replace( ',', '', $request->balance );
+        }
         Supplier::whereId($id)
             ->update($request->except(['_token']));
         return 1;

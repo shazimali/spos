@@ -14,7 +14,7 @@ class UpdateInSuppliers extends Migration
     public function up()
     {
         Schema::table('suppliers', function (Blueprint $table) {
-            $table->string('balance')->integer()->change();
+            $table->decimal('balance',20,2)->change();
         });
     }
 
