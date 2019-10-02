@@ -13,7 +13,7 @@
 
     <div class="col-sm-12">
         <div class="white-box">
-            <h3 class="box-title m-b-0">Customers Record &nbsp; &nbsp; <a href="javascript:" onclick="$('input').parent().removeClass('has-success')" class="btn btn-primary" data-toggle="modal" data-target="#responsive-modal" ><i class="fa fa-plus"></i> </a></h3>
+            <h3 class="box-title m-b-0">Customers Record &nbsp; &nbsp; <a href="javascript:" onclick="$('input').parent().removeClass('has-success')" class="btn btn-success" data-toggle="modal" data-target="#responsive-modal" ><i class="fa fa-plus"></i> </a></h3>
             <hr>
             <div class="table-responsive">
                 <table id="example23" class="display nowrap table table-hover table-striped" cellspacing="0" width="100%">
