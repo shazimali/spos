@@ -26,7 +26,7 @@
 
                     <div class="form-group">
                         <label for="balance-{{$supplier->id}}" class="control-label">Balance:</label>
-                        <input class="form-control supplier_balance" max_length="10" value="{{$supplier->balance}}" id="balance-{{$supplier->id}}" name="balance" />
+                        <input class="form-control supplier_balance" max_length="10" value="{{ number_format($supplier->balance,2) }}" id="balance-{{$supplier->id}}" name="balance" />
                     </div>
 
                     <div class="form-group">

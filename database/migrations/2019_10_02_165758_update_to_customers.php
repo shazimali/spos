@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class UpdateInSuppliers extends Migration
+class UpdateToCustomers extends Migration
 {
     /**
      * Run the migrations.
@@ -13,7 +13,7 @@ class UpdateInSuppliers extends Migration
      */
     public function up()
     {
-        Schema::table('suppliers', function (Blueprint $table) {
+        Schema::table('customers', function (Blueprint $table) {
             $table->decimal('balance',20,2)->change();
         });
     }
@@ -25,7 +25,7 @@ class UpdateInSuppliers extends Migration
      */
     public function down()
     {
-        Schema::table('suppliers', function (Blueprint $table) {
+        Schema::table('customers', function (Blueprint $table) {
             //
         });
     }

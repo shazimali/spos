@@ -38,6 +38,9 @@ class CustomerController extends Controller
      */
     public function store(CreateCustomerRequest $request)
     {
+        if( strpos($request->balance, ',') !== false ) {      
+            $request['balance'] = str_replace( ',', '', $request->balance );
+        }
         Customer::create($request->all());
         return 1;
     }
@@ -73,6 +76,9 @@ class CustomerController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if( strpos($request->balance, ',') !== false ) {      
+            $request['balance'] = str_replace( ',', '', $request->balance );
+        }
         Customer::whereId($id)
             ->update($request->except(['_token']));
         return 1;

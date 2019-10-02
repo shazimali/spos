@@ -20,7 +20,7 @@
                     </div>
                     <div class="form-group">
                         <label for="email" class="control-label">Balance:</label>
-                        <input type="text" onkeyup="getComma()" class="form-control" id="balance" name="balance">
+                        <input type="text" class="form-control" id="balance" name="balance">
                     </div>
                     <div class="form-group">
                         <label for="company_name" class="control-label">Company Name:</label>

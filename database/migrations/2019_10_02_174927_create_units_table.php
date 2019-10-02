@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class UpdateInSuppliers extends Migration
+class CreateUnitsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,10 @@ class UpdateInSuppliers extends Migration
      */
     public function up()
     {
-        Schema::table('suppliers', function (Blueprint $table) {
-            $table->decimal('balance',20,2)->change();
+        Schema::create('units', function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('title');
+            $table->timestamps();
         });
     }
 
@@ -25,8 +27,6 @@ class UpdateInSuppliers extends Migration
      */
     public function down()
     {
-        Schema::table('suppliers', function (Blueprint $table) {
-            //
-        });
+        Schema::dropIfExists('units');
     }
 }

@@ -19,12 +19,21 @@
                         <input readonly type="text" value="{{$head->code}}" name="code" class="form-control" id="code-{{$head->id}}" >
                     </div>
                     <div class="form-group ">
-                        <label for="code" class="control-label">Purchase Price:</label>
-                    <input type="number" value="{{$head->purchase}}" name="purchase" class="form-control" id="purchase" >
+                        <label for="code" class="control-label">Unit:</label>
+                        <select class="form-control" name="unit_id">
+                            <option value="">Please Select</option>
+                            @foreach($units as $unit)
+                            <option @if($unit->id == $head->unit_id) selected @endif  value="{{ $unit->id }}">{{ $unit->title }}</option>
+                            @endforeach
+                        </select>
                     </div>
                     <div class="form-group ">
-                        <label for="code" class="control-label">Sale Price:</label>
-                    <input type="number" value="{{$head->sale}}" name="sale" class="form-control" id="sale" >
+                        <label for="purchase" class="control-label">Purchase Price:</label>
+                    <input type="number" value="{{$head->purchase}}" name="purchase" class="form-control" id="purchase-{{$head->id}}" >
+                    </div>
+                    <div class="form-group ">
+                        <label for="sale" class="control-label">Sale Price:</label>
+                    <input type="number" value="{{$head->sale}}" name="sale" class="form-control" id="sale-{{$head->id}}" >
                     </div>
                     <div class="form-group ">
                         <label for="code" class="control-label">Minimum Stock:</label>

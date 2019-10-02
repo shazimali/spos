@@ -19,15 +19,24 @@
                         <input type="text" name="code" class="form-control" id="code" >
                     </div>
                     <div class="form-group ">
-                        <label for="code" class="control-label">Purchase Price:</label>
-                        <input type="number" value="" name="purchase" class="form-control" id="purchase" >
+                        <label for="code" class="control-label">Unit:</label>
+                        <select class="form-control" name="unit_id">
+                            <option value="">Please Select</option>
+                            @foreach($units as $unit)
+                            <option value="{{ $unit->id }}">{{ $unit->title }}</option>
+                            @endforeach
+                        </select>
                     </div>
                     <div class="form-group ">
-                        <label for="code" class="control-label">Sale Price:</label>
-                        <input type="number" value="" name="sale" class="form-control" id="sale" >
+                        <label for="purchase" class="control-label">Purchase Price:</label>
+                        <input type="number" name="purchase" class="form-control" id="purchase" >
                     </div>
                     <div class="form-group ">
-                        <label for="code" class="control-label">Minimum Stock:</label>
+                        <label for="sale" class="control-label">Sale Price:</label>
+                        <input type="number" name="sale" class="form-control" id="sale" >
+                    </div>
+                    <div class="form-group ">
+                        <label for="min_stock" class="control-label">Minimum Stock:</label>
                         <input type="number" value="1" name="min_stock" class="form-control" id="min_stock" >
                     </div>
                 </form>

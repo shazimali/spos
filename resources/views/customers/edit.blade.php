@@ -23,6 +23,10 @@
                         <label for="company_name-{{$customer->id}}" class="control-label">Company Name:</label>
                         <input class="form-control" value="{{$customer->company_name}}"  id="company_name-{{$customer->id}}" name="company_name" />
                     </div>
+                    <div class="form-group">
+                        <label for="balance-{{$customer->id}}" class="control-label">Balance:</label>
+                        <input class="form-control customer_balance" value="{{ number_format($customer->balance,2) }}"  id="company_name-{{$customer->id}}" name="balance" />
+                    </div>
 
                     <div class="form-group">
                         <label for="phone1-{{$customer->id}}" class="control-label">Phone 1:</label>
