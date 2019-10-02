@@ -49,7 +49,7 @@
                                 {!! $supplier->phone2 ? '<li>'. $supplier->phone2 .'</li>': '' !!}
                             </td>
                             <td>
-                                {{$supplier->balance}}
+                                {{ number_format($supplier->balance,2)}}
                             </td>
                             <td>
                                 <button class="btn btn-primary " onclick="$('input').parent().removeClass('has-success')" data-toggle="modal" data-target="#responsive-modal-{{$supplier->id}}" ><span class="glyphicon glyphicon-edit"></span> </button>
