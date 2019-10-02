@@ -10,19 +10,23 @@
 
                     @csrf
                     </div>
-                    <div class="form-group ">
+                    <div class="form-group">
                         <label for="name" class="control-label">Name:</label>
                         <input type="text" name="name" class="form-control" id="name" >
                     </div>
-                    <div class="form-group">
+                    <!-- <div class="form-group">
                         <label for="email" class="control-label">Email:</label>
                         <input type="email" class="form-control" id="email" name="email">
-                    </div>
+                    </div> -->
 
 
                     <div class="form-group">
                         <label for="company_name" class="control-label">Company Name:</label>
                         <input class="form-control" id="company_name" name="company_name" />
+                    </div>
+                    <div class="form-group">
+                        <label for="balance" class="control-label">Balance:</label>
+                        <input class="form-control" max_length="10" id="balance" name="balance" />
                     </div>
 
                     <div class="form-group">
@@ -35,13 +39,13 @@
                         <input type="text" class="form-control" id="phone2" name="phone2">
                     </div>
 
-                    <div class="form-group">
+                    <!-- <div class="form-group">
                         <label for="passport_no" class="control-label">Passport No:</label>
                         <input type="text" class="form-control" id="passport_no" name="passport_no">
-                    </div>
+                    </div> -->
 
                     <div class="form-group">
-                        <label for="nic" class="control-label">NIC:</label>
+                        <label for="nic" class="control-label">CNIC:</label>
                         <input type="text" class="form-control" id="nic" name="nic">
                     </div>
 
@@ -51,14 +55,16 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="address1" class="control-label">Address 1:</label>
+                        <label for="address1" class="control-label">Address:</label>
                         <textarea class="form-control" id="address1" name="address1"></textarea>
                     </div>
 
-                    <div class="form-group">
+                    
+
+                    <!-- <div class="form-group">
                         <label for="address2" class="control-label">Address 2:</label>
                         <textarea class="form-control" id="address2" name="address2"></textarea>
-                    </div>
+                    </div> -->
                     <div class="form-group">
                         <label for="remarks" class="control-label">Remarks:</label>
                         <textarea class="form-control" id="remarks" name="remarks"></textarea>

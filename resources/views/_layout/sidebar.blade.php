@@ -69,20 +69,20 @@
             {{-- <li> <a href="{{url('expense-head')}}" class="waves-effect"><i class="mdi mdi-bullseye fa-fw"></i> <span class="hide-menu">Expense Head</span></a></li> --}}
             <li> <a href="{{url('products-head')}}" class="waves-effect"><i class="mdi mdi-bullseye fa-fw"></i> <span class="hide-menu">Products Head</span></a></li>
 
-            {{-- <li> <a href="" class="waves-effect"><i class="mdi mdi-content-copy fa-fw"></i> <span class="hide-menu">User Manger<span class="fa arrow"></span></span></a>
+             <li> <a href="" class="waves-effect"><i class="mdi mdi-content-copy fa-fw"></i> <span class="hide-menu">User Manger<span class="fa arrow"></span></span></a>
                 <ul class="nav nav-second-level">
                     <li><a href="{{url('user')}}"><i class="ti-layout-width-default fa-fw"></i> <span class="hide-menu">Users List</span></a></li>
                     @permission("create_user")
                     <li><a href="{{url('user/create')}}"><i class="ti-layout-sidebar-left fa-fw"></i> <span class="hide-menu">Create User</span></a></li>
                     @endpermission
                 </ul>
-            </li> --}}
-            {{-- <li> <a href="" class="waves-effect"><i class="mdi mdi-content-copy fa-fw"></i> <span class="hide-menu">Role Manger<span class="fa arrow"></span></span></a>
+            </li> 
+             <li> <a href="" class="waves-effect"><i class="mdi mdi-content-copy fa-fw"></i> <span class="hide-menu">Role Manger<span class="fa arrow"></span></span></a>
                 <ul class="nav nav-second-level">
                     <li><a href="{{url('role')}}"><i class="ti-layout-width-default fa-fw"></i> <span class="hide-menu">Roles List</span></a></li>
                     <li><a href="{{url('role/create')}}"><i class="ti-layout-sidebar-left fa-fw"></i> <span class="hide-menu">Create Role</span></a></li>
                 </ul>
-            </li> --}}
+            </li> 
         </ul>
     </div>
 </div>

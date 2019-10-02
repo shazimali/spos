@@ -13,15 +13,20 @@
                         <label for="name-{{$supplier->id}}" class="control-label">Name:</label>
                         <input type="text" value="{{$supplier->name}}" name="name" class="form-control" id="name-{{$supplier->id}}" >
                     </div>
-                    <div class="form-group">
+                    <!-- <div class="form-group">
                         <label for="email-{{$supplier->id}}" class="control-label">Email:</label>
                         <input type="email" value="{{$supplier->email}}"  class="form-control" id="email-{{$supplier->id}}" name="email">
-                    </div>
+                    </div> -->
 
 
                     <div class="form-group">
                         <label for="company_name-{{$supplier->id}}" class="control-label">Company Name:</label>
                         <input class="form-control" value="{{$supplier->company_name}}"  id="company_name-{{$supplier->id}}" name="company_name" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="balance-{{$supplier->id}}" class="control-label">Balance:</label>
+                        <input class="form-control supplier_balance" max_length="10" value="{{$supplier->balance}}" id="balance-{{$supplier->id}}" name="balance" />
                     </div>
 
                     <div class="form-group">
@@ -34,13 +39,13 @@
                         <input type="text" class="form-control" value="{{$supplier->phone2}}" id="phone2-{{$supplier->id}}" name="phone2">
                     </div>
 
-                    <div class="form-group">
+                    <!-- <div class="form-group">
                         <label for="passport_no-{{$supplier->id}}" class="control-label">Passport No:</label>
                         <input type="text" class="form-control" value="{{$supplier->passport_no}}" id="passport_no-{{$supplier->id}}" name="passport_no">
-                    </div>
+                    </div> -->
 
                     <div class="form-group">
-                        <label for="nic-{{$supplier->id}}" class="control-label">NIC:</label>
+                        <label for="nic-{{$supplier->id}}" class="control-label">CNIC:</label>
                         <input type="text" class="form-control" value="{{$supplier->nic}}" id="nic-{{$supplier->id}}" name="nic">
                     </div>
 
@@ -50,14 +55,14 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="address1" class="control-label">Address 1:</label>
+                        <label for="address1" class="control-label">Address:</label>
                         <textarea class="form-control" id="address1-{{$supplier->id}}" name="address1">{{$supplier->address1}}</textarea>
                     </div>
 
-                    <div class="form-group">
+                    <!-- <div class="form-group">
                         <label for="address2-{{$supplier->id}}" class="control-label">Address 2:</label>
                         <textarea class="form-control" id="address2-{{$supplier->id}}" name="address2">{{$supplier->address2}}</textarea>
-                    </div>
+                    </div> -->
                     <div class="form-group">
                         <label for="remarks-{{$supplier->id}}" class="control-label">Remarks:</label>
                         <textarea class="form-control" id="remarks-{{$supplier->id}}" name="remarks">{{$supplier->remarks}}</textarea>

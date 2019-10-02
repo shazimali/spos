@@ -17,7 +17,7 @@ class SupplierController extends Controller
     {
 
         return view('suppliers.index',[
-            'suppliers'=> Supplier::all()
+            'suppliers'=> Supplier::orderBy('id','desc')->get()
         ]);
     }
 
@@ -46,6 +46,9 @@ class SupplierController extends Controller
      */
     public function store(CreateSupplierRequest $request)
     {
+        if( strpos($request->balance, ',') !== false ) {      
+            $request->balance = str_replace( ',', '', $request->balance );
+        }
         Supplier::create($request->all());
         return 1;
     }
