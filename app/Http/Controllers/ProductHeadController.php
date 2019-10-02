@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ProductHead;
+use App\Models\Unit;
 use Illuminate\Http\Request;
 
 class ProductHeadController extends Controller
@@ -16,7 +17,8 @@ class ProductHeadController extends Controller
     {
         return view('product-head.index',[
 
-           'products_heads'=> ProductHead::all()
+           'products_heads'=> ProductHead::all(),
+           'units'=> Unit::all()
 
         ]);
     }
@@ -88,9 +90,8 @@ class ProductHeadController extends Controller
             'purchase'=>'required',
             'sale'=>'required',
         ]);
-        ProductHead::whereId($id)
-            ->update($request->except(['_token']));
-
+        ProductHead::whereId($id)->update($request->except(['_token']));
+        
         return 1;
     }
 

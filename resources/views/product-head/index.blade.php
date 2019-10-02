@@ -14,7 +14,7 @@
     <div class="col-sm-12">
         <div class="white-box">
             <h3 class="box-title m-b-0">Products Head Record &nbsp; &nbsp;
-                <button onclick="$('input').parent().removeClass('has-success')" class="btn btn-primary" data-toggle="modal" data-target="#responsive-modal" ><i class="fa fa-plus"></i> </button>
+                <button onclick="$('input').parent().removeClass('has-success')" class="btn btn-success" data-toggle="modal" data-target="#responsive-modal" ><i class="fa fa-plus"></i> </button>
             </h3>
             <hr>
             <div class="table-responsive">
@@ -237,12 +237,11 @@
 
                         let errors = error.responseJSON.errors;
                         $.each(errors, function (key,value) {
-
                             $('#'+key).parent().removeClass('has-success ');
                             $('#'+key).parent().addClass('has-error has-feedback');
                             $('#'+key).after(' <span class="glyphicon glyphicon-remove form-control-feedback"></span>');
                             $('#'+key).after('<div class="help-block with-errors">'+ value[0] +'</div>');
-                        } );
+                        });
 
                     }
 
