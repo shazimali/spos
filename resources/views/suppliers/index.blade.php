@@ -22,7 +22,7 @@
                     <tr>
                         <th>#</th>
                         <th>Supplier Name</th>
-                        <th>Email</th>
+                        <!-- <th>Email</th> -->
                         <th>Contact</th>
                         <th>Balance</th>
                         <th>Actions</th>
@@ -32,7 +32,7 @@
                     <tr>
                         <th>#</th>
                         <th>Supplier Name</th>
-                        <th>Email</th>
+                        <!-- <th>Email</th> -->
                         <th>Balance</th>
                         <th>Actions</th>
                     </tr>
@@ -43,7 +43,7 @@
                         <tr>
                             <td>{{$sn++}}</td>
                             <td>{{$supplier->name}}</td>
-                            <td>{{$supplier->email}}</td>
+                            <!-- <td>{{$supplier->email}}</td> -->
                             <td>
                                 {!! $supplier->phone1 ? '<li>'. $supplier->phone1 .'</li>': '' !!}
                                 {!! $supplier->phone2 ? '<li>'. $supplier->phone2 .'</li>': '' !!}
@@ -197,8 +197,6 @@
             $('.form-control-feedback').remove();
             $('input').parent().addClass('has-success');
 
-
-
             $.ajax({
                 type:'POST',
                 url: '{{url('suppliers')}}',
@@ -305,8 +303,6 @@
             });
 
         }
-
-
 
     </script>
     @stop
