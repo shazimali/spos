@@ -14,7 +14,7 @@
     <div class="col-sm-12">
         <div class="white-box">
             <h3 class="box-title m-b-0">Suppliers Record &nbsp; &nbsp;
-                <button onclick="$('input').parent().removeClass('has-success')" class="btn btn-primary " data-toggle="modal" data-target="#responsive-modal" ><i class="fa fa-plus"></i> </button></h3>
+                <button onclick="$('input').parent().removeClass('has-success')" class="btn btn-success " data-toggle="modal" data-target="#responsive-modal" ><i class="fa fa-plus"></i> </button></h3>
             <hr>
             <div class="table-responsive">
                 <table id="example23" class="display nowrap table table-hover table-striped" cellspacing="0" width="100%">
