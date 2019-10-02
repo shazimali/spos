@@ -11,3 +11,14 @@ function getComma(event) {
       ;
     });
   };
+
+  $('#balance, .supplier_balance').on('keyup', function (event) {
+
+    if(event.which >= 37 && event.which <= 40){
+        event.preventDefault();
+    }
+    var newvalue=$(this).val().replace(/,/g, '');   
+    var valuewithcomma=Number(newvalue).toLocaleString('en');   
+    $(this).val(valuewithcomma); 
+
+    });
