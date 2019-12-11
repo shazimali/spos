@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import axios from 'axios';
 import Select from 'react-select';
 import Switch from 'react-switchery-component';
+import {addCommas} from "../helper/common.js";
 
  class CreatePurchase extends Component {
     constructor(props){
@@ -508,6 +509,11 @@ import Switch from 'react-switchery-component';
 
 
                                                     </div>
+                                                    {
+                                                        this.state.result.supplier_balance > 0 ?
+                                                    
+                                                <b class="text-danger ">CR: {addCommas(this.state.result.supplier_balance)}</b>
+                                                    :''}
                                             </div>
                                             <div className="col-sm-4">
 
@@ -664,20 +670,20 @@ import Switch from 'react-switchery-component';
 
                                         <div className="col-sm-3">
 
-                                            <h2 className="font-bold">Total Amount: {totalPrice}</h2>
-                                            <h3 className="font-bold">Total Quantity: {totalQty}</h3>
+                                            <h2 className="font-bold">Total Amount: {addCommas(totalPrice)}</h2>
+                                            <h3 className="font-bold">Total Quantity: {addCommas(totalQty)}</h3>
 
                                             <br/>
                                             <br/>
                                             <hr/>
-                                            <h4 className="font-bold">Total Amount: {totalPrice}</h4>
+                                            <h4 className="font-bold">Total Amount: {addCommas(totalPrice)}</h4>
                                             <hr/>
                                             <div className="form-group" hidden={this.state.result.payment_type_id == 1 ? false: true }>
                                                 <input type="number"  className="form-control" placeholder="Pay" onChange={this.handlePay} />
                                             </div>
-                                            <h4 className="font-bold">Current Balance: {totalPrice-this.state.result.pay_balance}</h4>
-                                            <h4 className="font-bold ">Remaining Balance: {this.state.result.supplier_balance}</h4>
-                                            <h4 className="font-bold ">Total Balance: {totalPrice + this.state.result.supplier_balance-this.state.result.pay_balance}</h4>
+                                            <h4 className="font-bold">Current Balance: {addCommas(totalPrice-this.state.result.pay_balance)}</h4>
+                                            {/* <h4 className="font-bold ">Remaining Balance: {addCommas(this.state.result.supplier_balance)}</h4> */}
+                                            <h4 className="font-bold ">Total Balance: {addCommas(totalPrice + this.state.result.supplier_balance-this.state.result.pay_balance)}</h4>
 
                                              <div >
                                                  {
