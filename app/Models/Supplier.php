@@ -20,7 +20,7 @@ class Supplier extends Model
 
     public function cBalance()
     {
-        return floatval($this->purchase->where('invoice_type_id',1)->sum('total_price')-$this->purchase->where('invoice_type_id',2)->sum('total_price')-$this->purchase->sum('pay')-$this->supplier_voucher->sum('amount'));
+        return floatval($this->purchase->where('invoice_type_id',1)->sum('total_price')-$this->purchase->where('invoice_type_id',2)->sum('total_price')-$this->purchase->sum('pay')-$this->supplier_voucher->sum('amount') + $this->balance);
     }
 
 }
