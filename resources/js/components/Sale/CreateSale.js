@@ -57,6 +57,9 @@ import 'sweetalert/dist/sweetalert.css';
     this.handleClick = this.handleClick.bind(this);
     this.handleShowDateTime = this.handleShowDateTime.bind(this);
     this.handleChangeFullView = this.handleChangeFullView.bind(this);
+    this.handleChangeNetDiscount = this.handleChangeNetDiscount.bind(this);
+    this.handleChangeNetDiscountPercentage = this.handleChangeNetDiscountPercentage.bind(this);
+
 
 
     }
@@ -217,6 +220,14 @@ import 'sweetalert/dist/sweetalert.css';
      componentWillMount() {
          document.addEventListener('mousedown',this.handleClick,false)
      }
+
+    handleChangeNetDiscount(e){
+
+     }
+
+    handleChangeNetDiscountPercentage(e){
+         
+    }
 
      handleChange(e){
 
@@ -776,69 +787,6 @@ import 'sweetalert/dist/sweetalert.css';
                             checked={this.state.isFullViewChecked}
                             onChange={(e) => this.handleChangeFullView(e)} />
                 </p>
-                                            <hr/>
-                                         <div className="row">
-
-                                            <div className="col-sm-12">
-
-                                                <div className={"table-responsive " + this.state.tableFullView}>
-
-                                                    <table className="table table-hover">
-                                                        <thead>
-                                                        <tr>
-                                                            <th>#</th>
-                                                            <th>Products</th>
-                                                            <th>Unit Price</th>
-                                                            <th>Quantity</th>
-                                                            <th>Total Price</th>
-                                                            <th>Actions</th>
-                                                        </tr>
-                                                        </thead>
-                                                        <tfoot>
-                                                        <tr>
-                                                            <th></th>
-                                                            <th></th>
-                                                            <th>Unit Price</th>
-                                                            <th>Total: {totalQty}</th>
-                                                            <th>Total: {totalPrice}</th>
-                                                            <th></th>
-                                                        </tr>
-                                                        </tfoot>
-                                                        <tbody>
-
-                                                        {
-                                                            this.state.selectedProductHeads.length > 0 ?
-                                                                this.state.selectedProductHeads.map( (ph,index)=>{
-                                                                   return  <tr key={ph.id}>
-                                                                        <td>{index+1}</td>
-                                                                        <th>{ph.title}</th>
-                                                                        <td><input type="number" value={ph.price} id={ph.id} onChange={this.handleChangeProductPrice} /></td>
-                                                                        <td><input type="number" value={ph.qty} id={ph.id} onChange={this.handleChangeProductQty} /></td>
-                                                                       <th>{ph.qty*ph.price}</th>
-                                                                        <td>
-                                                                            <button className="btn btn-danger "
-                                                                                    onClick={()=>this.handleChangeProductDelete(ph.id)}
-                                                                                    ><span
-                                                                                className="glyphicon glyphicon-remove"></span>
-                                                                            </button>
-
-                                                                        </td>
-                                                                    </tr>
-                                                                } ):
-                                                                <tr>
-                                                                    <td>No Product Selected</td>
-
-                                                                </tr>
-                                                        }
-
-
-                                                        </tbody>
-
-                                                    </table>
-                                                </div>
-
-                                            </div>
-                                        </div>
 
                                         </div>
 
@@ -880,6 +828,77 @@ import 'sweetalert/dist/sweetalert.css';
                                         </div>
 
                                     </div>
+                                    <hr/>
+                                         <div className="row">
+
+                                            <div className="col-sm-12">
+
+                                                <div className={"table-responsive " + this.state.tableFullView}>
+
+                                                    <table className="table table-hover">
+                                                        <thead>
+                                                        <tr>
+                                                            <th>#</th>
+                                                            <th>Products</th>
+                                                            <th>Unit Price</th>
+                                                            <th>Quantity</th>
+                                                            <th>Disc</th>
+                                                            <th>Amount</th>
+                                                            <th>Disc %</th>
+                                                            <th>Amount</th>
+                                                            <th>Total Price</th>
+                                                            <th>Actions</th>
+                                                        </tr>
+                                                        </thead>
+                                                        <tfoot>
+                                                        <tr>
+                                                            <th></th>
+                                                            <th></th>
+                                                            <th>Unit Price</th>
+                                                            <th>Total: {totalQty}</th>
+                                                            <th>Total: {totalPrice}</th>
+                                                            <th></th>
+                                                        </tr>
+                                                        </tfoot>
+                                                        <tbody>
+
+                                                        {
+                                                            this.state.selectedProductHeads.length > 0 ?
+                                                                this.state.selectedProductHeads.map( (ph,index)=>{
+                                                                   return  <tr key={ph.id}>
+                                                                        <td>{index+1}</td>
+                                                                        <th>{ph.title}</th>
+                                                                        <td><input type="number" value={ph.price} id={ph.id} onChange={this.handleChangeProductPrice} /></td>
+                                                                        <td><input type="number" value={ph.qty} id={ph.id} onChange={this.handleChangeProductQty} /></td>
+                                                                        <td><input type="number" value={ph.netDisc} id={ph.id} onChange={this.handleChangeNetDiscount} /></td>
+                                                                        <td></td>
+                                                                        <td><input type="number" value={ph.netDiscPr} id={ph.id} onChange={this.handleChangeNetDiscountPercentage} /></td>
+                                                                        <td></td>
+                                                                       <th>{ph.qty*ph.price}</th>
+                                                                        <td>
+                                                                            <button className="btn btn-danger "
+                                                                                    onClick={()=>this.handleChangeProductDelete(ph.id)}
+                                                                                    ><span
+                                                                                className="glyphicon glyphicon-remove"></span>
+                                                                            </button>
+
+                                                                        </td>
+                                                                    </tr>
+                                                                } ):
+                                                                <tr>
+                                                                    <td>No Product Selected</td>
+
+                                                                </tr>
+                                                        }
+
+
+                                                        </tbody>
+
+                                                    </table>
+                                                </div>
+
+                                            </div>
+                                        </div>
 
                                 </div>
                 </div>

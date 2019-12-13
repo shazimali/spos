@@ -58650,6 +58650,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(axios__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var react_select__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react-select */ "./node_modules/react-select/dist/react-select.esm.js");
 /* harmony import */ var react_switchery_component__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! react-switchery-component */ "./node_modules/react-switchery-component/es/index.js");
+/* harmony import */ var _helper_common_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../helper/common.js */ "./resources/js/components/helper/common.js");
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
@@ -58679,6 +58680,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 
 function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
 
 
 
@@ -59162,7 +59164,9 @@ function (_Component) {
         value: '',
         onChange: '',
         options: []
-      }))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+      })), this.state.result.supplier_balance > 0 ? react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("b", {
+        class: "text-danger "
+      }, "CR: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(this.state.result.supplier_balance)) : ''), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "col-sm-4"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "form-group"
@@ -59316,11 +59320,11 @@ function (_Component) {
         className: "col-sm-3"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h2", {
         className: "font-bold"
-      }, "Total Amount: ", totalPrice), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h3", {
+      }, "Total Amount: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(totalPrice)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h3", {
         className: "font-bold"
-      }, "Total Quantity: ", totalQty), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("br", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("br", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("hr", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
+      }, "Total Quantity: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(totalQty)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("br", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("br", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("hr", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
         className: "font-bold"
-      }, "Total Amount: ", totalPrice), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("hr", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+      }, "Total Amount: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(totalPrice)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("hr", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "form-group",
         hidden: this.state.result.payment_type_id == 1 ? false : true
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
@@ -59330,11 +59334,9 @@ function (_Component) {
         onChange: this.handlePay
       })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
         className: "font-bold"
-      }, "Current Balance: ", totalPrice - this.state.result.pay_balance), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
+      }, "Current Balance: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(totalPrice - this.state.result.pay_balance)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
         className: "font-bold "
-      }, "Remaining Balance: ", this.state.result.supplier_balance), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
-        className: "font-bold "
-      }, "Total Balance: ", totalPrice + this.state.result.supplier_balance - this.state.result.pay_balance), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, this.state.error.length ? this.state.error.map(function (e) {
+      }, "Total Balance: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(totalPrice + this.state.result.supplier_balance - this.state.result.pay_balance)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, this.state.error.length ? this.state.error.map(function (e) {
         return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h5", {
           className: "text-danger font-bold"
         }, "* ", e);
@@ -59378,6 +59380,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(axios__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var react_select__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react-select */ "./node_modules/react-select/dist/react-select.esm.js");
 /* harmony import */ var react_switchery_component__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! react-switchery-component */ "./node_modules/react-switchery-component/es/index.js");
+/* harmony import */ var _helper_common_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../helper/common.js */ "./resources/js/components/helper/common.js");
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
@@ -59413,6 +59416,7 @@ function _assertThisInitialized(self) { if (self === void 0) { throw new Referen
 
 
 
+
 var EditPurchase =
 /*#__PURE__*/
 function (_Component) {
@@ -59431,9 +59435,11 @@ function (_Component) {
       suppliers: [],
       payment_types: [],
       product_heads: [],
+      invoiceOldBalance: '',
       result: {
         purchase_id: null,
         supplier_id: null,
+        old_supplier_id: null,
         supplier_balance: 0,
         pay_balance: '',
         payment_mode: '',
@@ -59630,6 +59636,11 @@ function (_Component) {
             qty: ph.total_qty
           };
         });
+        var invoiceOldBalance = "";
+        selectedProductHeads.map(function (sp) {
+          var get_price = sp.price * sp.qty;
+          invoiceOldBalance = +invoiceOldBalance + +get_price;
+        });
         self.setState(_objectSpread({}, self.state, {
           suppliers: suppliers,
           product_heads: product_heads,
@@ -59642,6 +59653,7 @@ function (_Component) {
           result: _objectSpread({}, self.state.result, {
             purchase_id: purchase.id,
             supplier_id: purchase.supplier.id,
+            old_supplier_id: purchase.supplier.id,
             supplier_balance: parseFloat(res.data.cBalance),
             payment_type_id: purchase.payment_type.id,
             payment_mode: purchase.payment_type.id,
@@ -59651,7 +59663,8 @@ function (_Component) {
             time: purchase.time,
             remarks: purchase.remarks
           }),
-          selectedProductHeads: selectedProductHeads
+          selectedProductHeads: selectedProductHeads,
+          invoiceOldBalance: invoiceOldBalance
         }));
       });
     }
@@ -60022,11 +60035,9 @@ function (_Component) {
         className: "col-sm-3"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h2", {
         className: "font-bold"
-      }, "Total Amount: ", totalPrice), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h3", {
+      }, "Total Amount: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(totalPrice)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h3", {
         className: "font-bold"
-      }, "Total Quantity: ", totalQty), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("br", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("br", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("hr", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
-        className: "font-bold"
-      }, "Total Amount: ", totalPrice), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("hr", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+      }, "Total Quantity: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(totalQty)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("hr", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "form-group",
         hidden: this.state.result.payment_type_id == 1 ? false : true
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
@@ -60037,11 +60048,11 @@ function (_Component) {
         onChange: this.handlePay
       })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
         className: "font-bold"
-      }, "Current Balance: ", currentBalance), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
+      }, "Current Balance: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(currentBalance)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
         className: "font-bold text-danger"
-      }, "Remaining Balance: ", this.state.result.supplier_balance), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
+      }, "Remaining Balance: ", this.state.result.supplier_id == this.state.result.old_supplier_id ? Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(this.state.result.supplier_balance - this.state.invoiceOldBalance) : Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(this.state.result.supplier_balance)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
         className: "font-bold text-danger"
-      }, "Total Balance: ", this.state.result.purchase && this.state.result.purchase.supplier_id === this.state.result.supplier_id ? this.state.result.supplier_balance - (this.state.result.purchase.total_price - this.state.result.purchase.pay - currentBalance) : totalPrice + this.state.result.supplier_balance - this.state.result.pay_balance), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, this.state.error.length ? this.state.error.map(function (e) {
+      }, "Total Balance: ", this.state.result.purchase && this.state.result.purchase.supplier_id === this.state.result.supplier_id ? Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(this.state.result.supplier_balance - (this.state.result.purchase.total_price - this.state.result.purchase.pay - currentBalance)) : Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(totalPrice + this.state.result.supplier_balance - this.state.result.pay_balance)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, this.state.error.length ? this.state.error.map(function (e) {
         return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h5", {
           className: "text-danger font-bold"
         }, "* ", e);
@@ -60085,6 +60096,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(axios__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var react_select__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react-select */ "./node_modules/react-select/dist/react-select.esm.js");
 /* harmony import */ var react_switchery_component__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! react-switchery-component */ "./node_modules/react-switchery-component/es/index.js");
+/* harmony import */ var _helper_common_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../helper/common.js */ "./resources/js/components/helper/common.js");
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
@@ -60120,6 +60132,7 @@ function _assertThisInitialized(self) { if (self === void 0) { throw new Referen
 
 
 
+
 var EditReturnPurchase =
 /*#__PURE__*/
 function (_Component) {
@@ -60134,6 +60147,7 @@ function (_Component) {
     _this.state = {
       chequeDetails: false,
       selectedSupplier: null,
+      invoiceOldBalance: '',
       selectedProductHeads: [],
       suppliers: [],
       payment_types: [],
@@ -60141,6 +60155,7 @@ function (_Component) {
       result: {
         purchase_id: null,
         supplier_id: null,
+        old_supplier_id: null,
         supplier_balance: 0,
         pay_balance: '',
         payment_type_id: 1,
@@ -60286,6 +60301,11 @@ function (_Component) {
             qty: ph.total_qty
           };
         });
+        var invoiceOldBalance = "";
+        selectedProductHeads.map(function (sp) {
+          var get_price = sp.price * sp.qty;
+          invoiceOldBalance = +invoiceOldBalance + +get_price;
+        });
         self.setState(_objectSpread({}, self.state, {
           suppliers: suppliers,
           product_heads: product_heads,
@@ -60298,6 +60318,7 @@ function (_Component) {
           result: _objectSpread({}, self.state.result, {
             purchase_id: purchase.id,
             supplier_id: purchase.supplier.id,
+            old_supplier_id: purchase.supplier.id,
             supplier_balance: parseFloat(res.data.cBalance),
             payment_type_id: purchase.payment_type.id,
             pay_balance: parseFloat(purchase.pay),
@@ -60306,7 +60327,8 @@ function (_Component) {
             remarks: purchase.remarks,
             purchase: purchase
           }),
-          selectedProductHeads: selectedProductHeads
+          selectedProductHeads: selectedProductHeads,
+          invoiceOldBalance: invoiceOldBalance
         }));
       });
     }
@@ -60664,12 +60686,10 @@ function (_Component) {
       }) : react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, "No Product Selected")))))))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "col-sm-3"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h2", {
-        className: "font-bold"
-      }, "Total Amount: ", totalPrice), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h3", {
-        className: "font-bold"
-      }, "Total Quantity: ", totalQty), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("br", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("br", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("hr", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
-        className: "font-bold"
-      }, "Total Amount: ", totalPrice), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("hr", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        className: "font-bold text-success"
+      }, "Total Amount: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(totalPrice)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h3", {
+        className: "font-bold text-success"
+      }, "Total Quantity: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(totalQty)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("hr", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "form-group",
         hidden: true
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
@@ -60680,10 +60700,10 @@ function (_Component) {
         onChange: this.handlePay
       })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
         className: "font-bold"
-      }, "Current Balance: ", currentBalance), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
-        className: "font-bold"
-      }, "Remaining Balance: ", this.state.result.supplier_balance), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
-        className: "font-bold"
+      }, "Current Balance: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(currentBalance)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
+        className: "font-bold text-danger"
+      }, "Remaining Balance: ", this.state.result.supplier_id == this.state.result.old_supplier_id ? Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(this.state.result.supplier_balance + this.state.invoiceOldBalance) : Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(this.state.result.supplier_balance)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
+        className: "font-bold text-danger"
       }, "Total Balance: ", this.state.result.purchase && this.state.result.purchase.supplier_id === this.state.result.supplier_id ? this.state.result.supplier_balance + (this.state.result.purchase.total_price - this.state.result.purchase.pay - currentBalance) : this.state.result.supplier_balance - totalPrice - this.state.result.pay_balance), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, this.state.error.length ? this.state.error.map(function (e) {
         return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h5", {
           className: "text-danger font-bold"
@@ -60728,6 +60748,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(axios__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var react_select__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react-select */ "./node_modules/react-select/dist/react-select.esm.js");
 /* harmony import */ var react_switchery_component__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! react-switchery-component */ "./node_modules/react-switchery-component/es/index.js");
+/* harmony import */ var _helper_common_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../helper/common.js */ "./resources/js/components/helper/common.js");
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
@@ -60757,6 +60778,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 
 function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
 
 
 
@@ -61364,12 +61386,10 @@ function (_Component) {
       }) : react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, "No Product Selected")))))))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "col-sm-3"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h2", {
-        className: "font-bold"
-      }, "Total Amount: ", totalPrice), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h3", {
-        className: "font-bold"
-      }, "Total Quantity: ", totalQty), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("br", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("br", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("hr", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
-        className: "font-bold"
-      }, "Total Amount: ", totalPrice), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("hr", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        className: "font-bold text-success"
+      }, "Total Amount: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(totalPrice)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h3", {
+        className: "font-bold text-success"
+      }, "Total Quantity: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(totalQty)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("hr", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "form-group",
         hidden: true
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
@@ -61380,11 +61400,11 @@ function (_Component) {
         onChange: this.handlePay
       })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
         className: "font-bold"
-      }, "Current Balance: ", totalPrice - this.state.result.pay_balance), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
-        className: "font-bold "
-      }, "Remaining Balance: ", this.state.result.supplier_balance), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
-        className: "font-bold "
-      }, "Total Balance: ", this.state.result.supplier_balance - (totalPrice - this.state.result.pay_balance)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, this.state.error.length ? this.state.error.map(function (e) {
+      }, "Current Balance: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(totalPrice - this.state.result.pay_balance)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
+        className: "font-bold text-danger"
+      }, "Remaining Balance: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(this.state.result.supplier_balance)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
+        className: "font-bold text-danger"
+      }, "Total Balance: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(this.state.result.supplier_balance - (totalPrice - this.state.result.pay_balance))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, this.state.error.length ? this.state.error.map(function (e) {
         return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h5", {
           className: "text-danger font-bold"
         }, "* ", e);
@@ -61529,6 +61549,8 @@ function (_Component) {
     _this.handleClick = _this.handleClick.bind(_assertThisInitialized(_assertThisInitialized(_this)));
     _this.handleShowDateTime = _this.handleShowDateTime.bind(_assertThisInitialized(_assertThisInitialized(_this)));
     _this.handleChangeFullView = _this.handleChangeFullView.bind(_assertThisInitialized(_assertThisInitialized(_this)));
+    _this.handleChangeNetDiscount = _this.handleChangeNetDiscount.bind(_assertThisInitialized(_assertThisInitialized(_this)));
+    _this.handleChangeNetDiscountPercentage = _this.handleChangeNetDiscountPercentage.bind(_assertThisInitialized(_assertThisInitialized(_this)));
     return _this;
   }
 
@@ -61679,6 +61701,12 @@ function (_Component) {
     value: function componentWillMount() {
       document.addEventListener('mousedown', this.handleClick, false);
     }
+  }, {
+    key: "handleChangeNetDiscount",
+    value: function handleChangeNetDiscount(e) {}
+  }, {
+    key: "handleChangeNetDiscountPercentage",
+    value: function handleChangeNetDiscountPercentage(e) {}
   }, {
     key: "handleChange",
     value: function handleChange(e) {
@@ -62200,36 +62228,7 @@ function (_Component) {
         onChange: function onChange(e) {
           return _this4.handleChangeFullView(e);
         }
-      })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("hr", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: "row"
-      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: "col-sm-12"
-      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: "table-responsive " + this.state.tableFullView
-      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("table", {
-        className: "table table-hover"
-      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("thead", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "#"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Products"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Unit Price"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Quantity"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Total Price"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Actions"))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tfoot", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Unit Price"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Total: ", totalQty), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Total: ", totalPrice), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tbody", null, this.state.selectedProductHeads.length > 0 ? this.state.selectedProductHeads.map(function (ph, index) {
-        return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", {
-          key: ph.id
-        }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, index + 1), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, ph.title), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
-          type: "number",
-          value: ph.price,
-          id: ph.id,
-          onChange: _this4.handleChangeProductPrice
-        })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
-          type: "number",
-          value: ph.qty,
-          id: ph.id,
-          onChange: _this4.handleChangeProductQty
-        })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, ph.qty * ph.price), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
-          className: "btn btn-danger ",
-          onClick: function onClick() {
-            return _this4.handleChangeProductDelete(ph.id);
-          }
-        }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
-          className: "glyphicon glyphicon-remove"
-        }))));
-      }) : react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, "No Product Selected")))))))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+      }))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "col-sm-3"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h3", {
         className: "font-bold text-primary"
@@ -62281,7 +62280,46 @@ function (_Component) {
         onClick: this.handleSubmit,
         disabled: this.state.selectedProductHeads.length ? false : true,
         className: "btn btn-success btn-lg"
-      }, "Confirm Order"))))));
+      }, "Confirm Order"))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("hr", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        className: "row"
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        className: "col-sm-12"
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        className: "table-responsive " + this.state.tableFullView
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("table", {
+        className: "table table-hover"
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("thead", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "#"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Products"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Unit Price"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Quantity"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Disc"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Amount"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Disc %"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Amount"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Total Price"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Actions"))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tfoot", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Unit Price"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Total: ", totalQty), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Total: ", totalPrice), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tbody", null, this.state.selectedProductHeads.length > 0 ? this.state.selectedProductHeads.map(function (ph, index) {
+        return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", {
+          key: ph.id
+        }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, index + 1), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, ph.title), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
+          type: "number",
+          value: ph.price,
+          id: ph.id,
+          onChange: _this4.handleChangeProductPrice
+        })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
+          type: "number",
+          value: ph.qty,
+          id: ph.id,
+          onChange: _this4.handleChangeProductQty
+        })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
+          type: "number",
+          value: ph.netDisc,
+          id: ph.id,
+          onChange: _this4.handleChangeNetDiscount
+        })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
+          type: "number",
+          value: ph.netDiscPr,
+          id: ph.id,
+          onChange: _this4.handleChangeNetDiscountPercentage
+        })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, ph.qty * ph.price), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
+          className: "btn btn-danger ",
+          onClick: function onClick() {
+            return _this4.handleChangeProductDelete(ph.id);
+          }
+        }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
+          className: "glyphicon glyphicon-remove"
+        }))));
+      }) : react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, "No Product Selected"))))))))));
     }
   }]);
 
@@ -66019,6 +66057,35 @@ function (_Component) {
 
 /***/ }),
 
+/***/ "./resources/js/components/helper/common.js":
+/*!**************************************************!*\
+  !*** ./resources/js/components/helper/common.js ***!
+  \**************************************************/
+/*! exports provided: addCommas */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "addCommas", function() { return addCommas; });
+function addCommas(num) {
+  var str = num.toString().split('.');
+
+  if (str[0].length >= 4) {
+    //add comma every 3 digits befor decimal
+    str[0] = str[0].replace(/(\d)(?=(\d{3})+$)/g, '$1,');
+  }
+  /* Optional formating for decimal places
+  if (str[1] && str[1].length >= 4) {
+      //add space every 3 digits after decimal
+      str[1] = str[1].replace(/(\d{3})/g, '$1 ');
+  }*/
+
+
+  return str.join('.');
+}
+
+/***/ }),
+
 /***/ "./resources/js/components/product-profit-loss/filter.js":
 /*!***************************************************************!*\
   !*** ./resources/js/components/product-profit-loss/filter.js ***!
@@ -67273,8 +67340,8 @@ function (_Component) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(/*! D:\Private\spos\resources\js\app.js */"./resources/js/app.js");
-module.exports = __webpack_require__(/*! D:\Private\spos\resources\sass\app.scss */"./resources/sass/app.scss");
+__webpack_require__(/*! D:\learning2\spos\resources\js\app.js */"./resources/js/app.js");
+module.exports = __webpack_require__(/*! D:\learning2\spos\resources\sass\app.scss */"./resources/sass/app.scss");
 
 
 /***/ })
