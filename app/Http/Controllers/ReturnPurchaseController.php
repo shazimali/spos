@@ -44,10 +44,10 @@ class ReturnPurchaseController extends Controller
     public function store(CreatePurchaseRequest $request)
     {
 
-        Supplier::whereId($request->supplier)
-            ->update([
-                'balance'=>$request->balance
-            ]);
+        // Supplier::whereId($request->supplier)
+        //     ->update([
+        //         'balance'=>$request->balance
+        //     ]);
 
         $purchase = Purchase::create([
             'payment_type_id'=>$request->payment_mode,
@@ -123,30 +123,6 @@ class ReturnPurchaseController extends Controller
     public function update(CreatePurchaseRequest $request, $id)
     {
         $purchase = Purchase::find($id);
-        $old_sup=$purchase->supplier_id;
-        $new_sup=$request->supplier;
-
-        if ($old_sup != $new_sup )
-        {
-
-            $purchase->supplier_id =$request->supplier;
-            $supplier = Supplier::find($old_sup);
-            $supplier->balance += ($purchase->total_price - $purchase->pay);
-            $supplier->save();
-
-            Supplier::whereId($request->supplier)
-                ->update([
-                    'balance'=>$request->balance
-                ]);
-
-        }else{
-
-            Supplier::whereId($old_sup)
-                ->update([
-                    'balance'=>$request->balance
-                ]);
-
-        }
 
         $purchase->payment_type_id=$request->payment_mode;
         $purchase->supplier_id=$request->supplier;
