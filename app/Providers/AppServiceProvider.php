@@ -4,9 +4,12 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
+use App\Models\ShopInformation;
+use View;
 
 class AppServiceProvider extends ServiceProvider
 {
+    
     /**
      * Bootstrap any application services.
      *
@@ -15,6 +18,12 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         Schema::defaultStringLength(191);
+         //its just a dummy data object.
+      $info = ShopInformation::first();
+  
+      // Sharing is caring
+      View::share('info', $info);
+
     }
 
     /**

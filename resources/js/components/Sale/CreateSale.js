@@ -5,6 +5,8 @@ import Switch from 'react-switchery-component';
 import 'react-switchery-component/react-switchery-component.css';
 import SweetAlert from 'sweetalert-react';
 import 'sweetalert/dist/sweetalert.css';
+import {addCommas,round} from "../helper/common.js";
+import { parse } from 'path';
  class CreateSale extends Component {
     constructor(props){
         super(props);
@@ -17,8 +19,12 @@ import 'sweetalert/dist/sweetalert.css';
             customers:[],
             payment_types:[],
             product_heads:[],
+            allTaxes:[],
+            selectedTaxes:[],
+            isChecked:[],
+            invoiceId:'',
             result:{
-                customer_id:1,
+                customer_id:1000,
                 customer_balance:0,
                 pay_balance:0,
                 payment_type_id:1,
@@ -31,6 +37,7 @@ import 'sweetalert/dist/sweetalert.css';
                 time:'',
                 currentDateAndTime:true,
                 discount:0,
+                percentage_discount:0,
                 pf:true
             },
             error:[],
@@ -53,29 +60,48 @@ import 'sweetalert/dist/sweetalert.css';
     this.handleSubmit=this.handleSubmit.bind(this);
     this.handlePay=this.handlePay.bind(this);
     this.handleDiscount=this.handleDiscount.bind(this);
+    this.handlePercentageDiscount=this.handlePercentageDiscount.bind(this);
     this.handleChangePrint=this.handleChangePrint.bind(this);
     this.handleClick = this.handleClick.bind(this);
     this.handleShowDateTime = this.handleShowDateTime.bind(this);
+    this.handleChangeTax = this.handleChangeTax.bind(this);
     this.handleChangeFullView = this.handleChangeFullView.bind(this);
     this.handleChangeNetDiscount = this.handleChangeNetDiscount.bind(this);
     this.handleChangeNetDiscountPercentage = this.handleChangeNetDiscountPercentage.bind(this);
-
-
-
     }
 
      handleSubmit(e){
          e.preventDefault();
-         let totalPrice=0;
          let totalQty=0;
-         let netTotal = 0;
-         this.state.selectedProductHeads.map((sp)=>{
-
-             totalQty += sp.qty;
-             totalPrice += sp.price *sp.qty;
-             netTotal = totalPrice - this.state.result.discount;
-
-         });
+         let totalPrice=0;
+         let netTotal = 0;            
+         let extTax = 0;
+         let addExtTax = 0;
+         let addTax = 0;
+         let tax = 0;
+         let tax_ids = [];
+          this.state.selectedProductHeads.length ? this.state.selectedProductHeads.map((sp)=>{
+              totalQty+=sp.qty;
+             if(this.state.selectedTaxes.length){
+                 this.state.selectedTaxes.sort((a,b) =>a.order-b.order).map((tx) => {
+                     tax = parseFloat(sp.qty*sp.price/100*tx.value);
+                     if(tx.order == 1){
+                         extTax = parseFloat(sp.qty*sp.price) + parseFloat(sp.qty*sp.price/100*tx.value)
+                         addTax = parseFloat(sp.qty*sp.price/100*tx.value);
+                     }    
+                     if(tx.order == 2){
+                         tax = extTax/100*tx.value;
+                         addExtTax = extTax/100*tx.value; 
+                     }
+                     tax_ids.push(tx.id);
+                 })
+                 totalPrice += sp.price *sp.qty + parseFloat(addTax) + parseFloat(addExtTax);
+             }
+             else{
+                 totalPrice +=  sp.price *sp.qty - (sp.price *sp.qty/100 * sp.netDiscPr) - sp.netDisc;
+              }
+              netTotal = (totalPrice - this.state.result.discount) - (totalPrice/100 *this.state.result.percentage_discount);
+         }):'';
 
         let balance = netTotal + this.state.result.customer_balance - this.state.result.pay_balance;
        let  pay_balance = this.state.result.pay_balance;
@@ -99,8 +125,10 @@ import 'sweetalert/dist/sweetalert.css';
              cheque_amount:this.state.result.cheque_amount,
              cheque_date:this.state.result.cheque_date,
              discount:this.state.result.discount,
+             pr_disc:this.state.result.percentage_discount,
              pf:this.state.result.pf,
              remarks:this.state.result.remarks,
+             tax_ids,
              pay_balance,
              totalQty,
              totalPrice,
@@ -179,7 +207,14 @@ import 'sweetalert/dist/sweetalert.css';
          let url =location.origin;
         var self=this;
         axios.get(url+'/sales-get-customers').then(res=>{
-
+            let allTaxes = res.data.all_taxes.map((s)=>{
+                return ({
+                    label:s.title,
+                    id:s.id,
+                    value:parseFloat(s.value),
+                    order:s.order
+                })
+            });
             let customers= res.data.customers.map((s)=>{
                 return ({
                     label:s.name,
@@ -187,11 +222,10 @@ import 'sweetalert/dist/sweetalert.css';
                     balance:parseFloat(s.balance)
                 })
             });
-         let selectedCustomer= res.data.customers.find(s=> s.id ==1);
-
+         let selectedCustomer= res.data.customers.find(s=> s.id ==1000);
             let product_heads= res.data.product_heads.map((s)=>{
                 return  ({
-                    label:s.title,
+                    label:s.title+"-"+s.brand.title,
                     value:s.id,
                     price:parseFloat(s.stock.price),
                     availableQty:parseFloat(s.stock.total_qty) - parseFloat(s.stock.out_qty)
@@ -200,6 +234,7 @@ import 'sweetalert/dist/sweetalert.css';
           self.setState({
               ...self.state,
               customers,
+              allTaxes,
               selectedCustomer:{
                   label:selectedCustomer.name,
                   value:selectedCustomer.id,
@@ -222,10 +257,47 @@ import 'sweetalert/dist/sweetalert.css';
      }
 
     handleChangeNetDiscount(e){
-
+        let netDisc = parseFloat(e.target.value);
+        let  selectedProductHeads; 
+        if (netDisc>0){
+           selectedProductHeads =  this.state.selectedProductHeads.map(sp=>  sp.id == e.target.id  ?
+                {...sp, netDisc}
+                : sp
+            );
+        }
+        else{
+                selectedProductHeads =  this.state.selectedProductHeads.map(sp=>  sp.id == e.target.id  ?
+                    {...sp, netDisc:''}
+                    : sp
+                );
+             }
+        this.setState({
+            ...this.state,
+            selectedProductHeads
+        })
      }
 
     handleChangeNetDiscountPercentage(e){
+
+    let netDiscPr = parseFloat(e.target.value);
+    let  selectedProductHeads; 
+    if (netDiscPr>0){
+       selectedProductHeads =  this.state.selectedProductHeads.map(sp=>  sp.id == e.target.id  ?
+            {...sp, netDiscPr}
+            : sp
+        );
+    }
+    else
+         {
+            selectedProductHeads =  this.state.selectedProductHeads.map(sp=>  sp.id == e.target.id  ?
+                {...sp, netDiscPr:''}
+                : sp
+            );
+         }
+    this.setState({
+        ...this.state,
+        selectedProductHeads
+    })
          
     }
 
@@ -273,9 +345,8 @@ import 'sweetalert/dist/sweetalert.css';
      selectCustomer(e){
         let url =location.origin;
         var self =this;
-
         axios.get(url+'/customer-balance/'+e.value).then((res)=>{
-
+            
             self.setState({
                 ...self.state,
                 selectedCustomer:e,
@@ -336,7 +407,10 @@ import 'sweetalert/dist/sweetalert.css';
                              id:e.value,
                              title:e.label,
                              price:parseFloat(e.price),
-                             qty:1
+                             qty:1,
+                             netDisc:'',
+                             netDiscPr:'',
+
 
                         };
 
@@ -486,6 +560,30 @@ import 'sweetalert/dist/sweetalert.css';
         }
 
     }
+    handlePercentageDiscount(e){
+
+        let percentage_discount = parseFloat(e.target.value);
+        if (percentage_discount){
+            this.setState({
+
+                result:{
+                    ...this.state.result,
+                    percentage_discount
+                }
+            });
+        }else
+        {
+            this.setState({
+
+                result:{
+                    ...this.state.result,
+                    percentage_discount:0
+                }
+            });
+
+        }
+
+    }
      handleChangeSearchKey(e) {
 
          this.setState({
@@ -621,42 +719,102 @@ import 'sweetalert/dist/sweetalert.css';
         })
 
     }
+    handleChangeTax(e){
+        if(e.target.checked){
+
+            this.state.allTaxes.map((tx) => {
+                if(tx.id == e.target.id){
+                    let selectedTax = {
+                        label:tx.label,
+                        id:tx.id,
+                        value:parseFloat(tx.value),
+                        order:tx.order
+                    }
+
+                    this.setState({
+                        ...this.state,
+                        selectedTaxes:[...this.state.selectedTaxes,selectedTax]
+                    })
+                }
+            });
+            
+        }
+        else{            
+            const selectedTaxes=  this.state.selectedTaxes.filter(tx=> tx.id != e.target.id)
+            this.setState({
+                ...this.state,
+                selectedTaxes
+            })
+        }
+    }
      render() {
 
         let totalQty=0;
         let totalPrice=0;
-        let netTotal = 0;
+        let netTotal = 0;            
+        let extTax = 0;
+        let addExtTax = 0;
+        let addTax = 0;
+        let tax = 0;
          this.state.selectedProductHeads.length ? this.state.selectedProductHeads.map((sp)=>{
-
              totalQty+=sp.qty;
-             totalPrice += sp.price *sp.qty;
-             netTotal = totalPrice - this.state.result.discount;
-            })
-
-
-             :'';
+            if(this.state.selectedTaxes.length){
+                this.state.selectedTaxes.sort((a,b) =>a.order-b.order).map((tx) => {
+                    tax = parseFloat(sp.qty*sp.price/100*tx.value);
+                    if(tx.order == 1){
+                        extTax = parseFloat(sp.qty*sp.price) + parseFloat(sp.qty*sp.price/100*tx.value)
+                        addTax = parseFloat(sp.qty*sp.price/100*tx.value);
+                    }    
+                    if(tx.order == 2){
+                        tax = extTax/100*tx.value;
+                        addExtTax = extTax/100*tx.value; 
+                    }
+                })
+                totalPrice += sp.price *sp.qty + parseFloat(addTax) + parseFloat(addExtTax);
+            }
+            else{
+                totalPrice +=  sp.price *sp.qty - (sp.price *sp.qty/100 * sp.netDiscPr) - sp.netDisc;
+             }
+             netTotal = (totalPrice - this.state.result.discount) - (totalPrice/100 *this.state.result.percentage_discount);
+        }):'';
 
 
         return (
-
+            
             <div className="row">
-            <SweetAlert
+                <header className="col-md-12">
+
+                </header>
+            {/* <SweetAlert
                                 show={this.state.show}
                                 title="Out of stock"
                                 onConfirm={() => this.setState({ show: false })}
-                            />
+                            /> */}
+
                 <div className="col-sm-12">
                                 <div className="white-box">
                                     <h2 className="font-bold text-center">Sale Invoice</h2>
                                     <div className="row">
-                                        <div className="col-sm-9">
+                                        <div className="col-sm-12">
                                             <div className="row">
-                                                <div className="col-sm-12">
+                                                <div className="col-sm-4">
                                                     <div className="checkbox checkbox-primary checkbox-circle">
                                                         <input onChange={this.handleShowDateTime} checked={this.state.result.currentDateAndTime}  id="checkbox-9" type="checkbox"/>
                                                         <label htmlFor="checkbox-9"  > Current Date </label>
                                                     </div>
                                                 </div>
+
+                                                {
+                                                    this.state.allTaxes.map((tx)=>{
+                                                    return  <div className="col-sm-4">
+                                                        <div className="checkbox checkbox-primary checkbox-circle">
+                                                            <input key={tx.id} value={tx.value}  onChange={this.handleChangeTax} id={tx.id} type="checkbox"/>
+                                                            <label htmlFor={this.id}  >{tx.label}</label>
+                                                        </div>
+                                                    </div>
+                                                    })
+                                                    
+                                                }
                                                 <div className="col-sm-6" hidden={this.state.result.currentDateAndTime}>
                                                     <div className="form-group">
                                                         <label id="date" className=" font-bold text-primary">Date:</label>
@@ -699,6 +857,14 @@ import 'sweetalert/dist/sweetalert.css';
 
 
                                             </div>
+                                             {
+                                                        this.state.result.customer_balance > 0 ?
+                                                <b class="text-danger ">CR: {addCommas(this.state.result.customer_balance)}</b>
+                                                    :''}
+                                             {
+                                                        this.state.result.customer_balance < 0 ?
+                                                <b class="text-success ">DR: {addCommas(this.state.result.customer_balance)}</b>
+                                                    :''}
                                             </div>
                                             <div className="col-sm-4">
 
@@ -780,36 +946,203 @@ import 'sweetalert/dist/sweetalert.css';
                                             </div>
                                         </div>
 
-                <p>
+                {/* <p>
                     <label htmlFor="size-example">Full View</label>
                     <Switch id="size-example"
                             size="small"
                             checked={this.state.isFullViewChecked}
                             onChange={(e) => this.handleChangeFullView(e)} />
-                </p>
+                </p> */}
 
                                         </div>
 
-                                        <div className="col-sm-3">
+                                        
 
-                                            <h3 className="font-bold text-primary">TOTAL AMOUNT: {totalPrice}</h3>
-                                            <h4 className="font-bold">Total Quantity: {totalQty}</h4>
+                                    </div>
+                                    <hr/>
+                                         <div className="row">
+
+                                            <div className="col-sm-12">
+
+                                                <div className="table-responsive ">
+
+                                                    <table className="table table-hover">
+                                                        <thead>
+                                                            {
+                                                                 this.state.selectedTaxes.length == 0?
+                                                                 <tr>
+                                                            <th>#</th>
+                                                            <th>Products</th>
+                                                            <th>Unit Price</th>
+                                                            <th>Quantity</th>
+                                                            <th>Disc %</th>
+                                                            <th>Amount</th>
+                                                            <th>Disc</th>
+                                                            <th>Total Price</th>
+                                                            <th>Actions</th>
+                                                        </tr>:
+                                                        <tr>
+                                                        <th>#</th>
+                                                        <th>Products</th>
+                                                        <th>Unit Price</th>
+                                                        <th>Quantity</th>
+                                                        {
+                                                        this.state.selectedTaxes.length > 0? this.state.selectedTaxes.sort((a, b) =>a.order-b.order).map((tx) => {
+
+                                                        return <th>{tx.label+'('+tx.value+'%)'}</th>
+                                                        }):''
+                                                        
+                                                        }
+                                                        <th>Total Price</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                            }
+                                                        
+                                                        </thead>
+                                                        <tfoot>
+                                                        {
+                                                                this.state.selectedTaxes.length == 0?
+                                                                <tr>
+                                                            
+                                                            <th></th>
+                                                            <th></th>
+                                                            <th>Unit Price</th>
+                                                            <th>Total: {totalQty}</th>
+                                                            <th></th>
+                                                            <th></th>
+                                                            <th></th>
+                                                            <th>Total: {(totalPrice).toFixed(2)}</th>
+                                                            <th></th>
+                                                        </tr>:
+                                                        <tr>
+                                                            
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th>Unit Price</th>
+                                                        <th>Total: {totalQty}</th>
+                                                        {
+                                                        this.state.selectedTaxes.length > 0? this.state.selectedTaxes.map((tx) => {
+
+                                                        return <th></th>
+                                                        }):''
+                                                        
+                                                        }
+                                                        <th>Total: {(totalPrice).toFixed(2)}</th>
+                                                        <th></th>
+                                                    </tr>
+                                                            }
+                                                        
+                                                        </tfoot>
+                                                        <tbody>
+
+                                                        {
+                                                            
+                                                            this.state.selectedTaxes.length > 0?
+                                                            
+                                                            this.state.selectedProductHeads.length > 0 ?
+                                                                this.state.selectedProductHeads.map( (ph,index)=>{
+                                                                   return  <tr key={ph.id}>
+                                                                        <td>{index+1}</td>
+                                                                        <th>{ph.title}</th>
+                                                                        <td><input type="number" value={ph.price} id={ph.id} onChange={this.handleChangeProductPrice} /></td>
+                                                                        <td><input type="number" value={ph.qty} id={ph.id} onChange={this.handleChangeProductQty} /></td>
+                                                                        {
+                                                                        this.state.selectedTaxes.length > 0? this.state.selectedTaxes.sort((a, b) =>a.order-b.order).map((tx) => {
+                                                                            tax = parseFloat(ph.qty*ph.price/100*tx.value);
+                                                                            if(tx.order == 1){
+                                                                                extTax = parseFloat(ph.qty*ph.price) + parseFloat(ph.qty*ph.price/100*tx.value)
+                                                                                addTax = parseFloat(ph.qty*ph.price/100*tx.value);
+                                                                            }    
+                                                                            if(tx.order == 2){
+                                                                                tax = extTax/100*tx.value
+                                                                                addExtTax = extTax/100*tx.value 
+                                                                            }
+                                                                                                                                                    
+                                                                        return <th>{(tax).toFixed(2)}</th>
+                                                                        }):''
+                                                                        
+                                                                        }
+                                                                        
+                                                                        <th>{(ph.qty*ph.price + parseFloat(addTax) + parseFloat(addExtTax)).toFixed(2)}</th>
+                                                                        <td>
+                                                                            <button className="btn btn-danger "
+                                                                                    onClick={()=>this.handleChangeProductDelete(ph.id)}
+                                                                                    ><span
+                                                                                className="glyphicon glyphicon-remove"></span>
+                                                                            </button>
+
+                                                                        </td>
+                                                                    </tr>
+                                                                } ):
+                                                                <tr>
+                                                                    <td>No Product Selected</td>
+
+                                                                </tr>
+                                                                :
+                                                                this.state.selectedProductHeads.length > 0 ?
+                                                                this.state.selectedProductHeads.map( (ph,index)=>{
+                                                                    
+                                                                   return  <tr key={ph.id}>
+                                                                        <td>{index+1}</td>
+                                                                        <th>{ph.title}</th>
+                                                                        <td><input type="number" value={ph.price} id={ph.id} onChange={this.handleChangeProductPrice} /></td>
+                                                                        <td><input type="number" value={ph.qty} id={ph.id} onChange={this.handleChangeProductQty} /></td>
+                                                                        <td><input type="number" value={ph.netDiscPr} id={ph.id} onChange={this.handleChangeNetDiscountPercentage} /></td>
+                                                                        <th>{(ph.qty*ph.price/100*ph.netDiscPr).toFixed(2)}</th>
+                                                                        <td><input type="number" value={ph.netDisc} id={ph.id} onChange={this.handleChangeNetDiscount} /></td>
+                                                                        <th>{(ph.qty*ph.price - ph.qty*ph.price/100*ph.netDiscPr - ph.netDisc).toFixed(2)}</th>
+                                                                        <td>
+                                                                            <button className="btn btn-danger "
+                                                                                    onClick={()=>this.handleChangeProductDelete(ph.id)}
+                                                                                    ><span
+                                                                                className="glyphicon glyphicon-remove"></span>
+                                                                            </button>
+
+                                                                        </td>
+                                                                    </tr>
+                                                                } ):
+                                                                <tr>
+                                                                    <td>No Product Selected</td>
+
+                                                                </tr>
+
+                                                        }
+
+
+                                                        </tbody>
+
+                                                    </table>
+                                                </div>
+
+                                            </div>
+                                            <div className="col-sm-3 pull-right">
+
+                                            <h3 className="font-bold text-primary">TOTAL AMOUNT: {addCommas((totalPrice).toFixed(2))}</h3>
+                                            <h4 className="font-bold text-warning">Total Quantity: {addCommas(totalQty)}</h4>
                                             {
                                                 this.state.result.discount > 0 ?
-                                            <h4 className="font-bold">Discount: {this.state.result.discount} </h4>
+                                            <h4 className="font-bold text-success">Discount: {this.state.result.discount} </h4>
                                             :''
                                             }
-                                            <h4 className="font-bold">Net Total: {netTotal}</h4>
+                                            {
+                                                this.state.result.percentage_discount > 0 ?
+                                            <h4 className="font-bold text-default">Discount %: {this.state.result.percentage_discount} </h4>
+                                            :''
+                                            }
+                                            <h4 className="font-bold text-danger">Net Total: {addCommas((netTotal).toFixed(2))}</h4>
                                             <div className="form-group" hidden={this.state.result.payment_type_id == 2 ? false: true }>
                                                 <input type="number"  className="form-control" placeholder="Pay" onChange={this.handlePay} />
                                             </div>
                                             <div className="form-group">
                                                 <input type="number" disabled={this.state.selectedProductHeads.length? false : true}  className="form-control" placeholder="Discount" onChange={this.handleDiscount} />
                                             </div>
+                                            <div className="form-group">
+                                                <input type="number" disabled={this.state.selectedProductHeads.length? false : true}  className="form-control" placeholder="Discount %" onChange={this.handlePercentageDiscount} />
+                                            </div>
                                            <div>
-                                               <h4 hidden={this.state.result.payment_type_id == 1 ? true: false} className="font-bold">Current Balance: {totalPrice-this.state.result.pay_balance}</h4>
-                                               <h4 className="font-bold">Remaining Balance: {this.state.result.customer_balance}</h4>
-                                               <h4 hidden={this.state.result.payment_type_id == 1 ? true: false} className="font-bold">Total Balance: {(netTotal + this.state.result.customer_balance-this.state.result.pay_balance).toFixed(2)}</h4>
+                                               <h4 hidden={this.state.result.payment_type_id == 1 ? true: false} className="font-bold">Current Balance: {addCommas((netTotal-this.state.result.pay_balance).toFixed(2))}</h4>
+                                               <h4 className="font-bold text-danger">Remaining Balance: {addCommas(this.state.result.customer_balance)}</h4>
+                                               <h4 hidden={this.state.result.payment_type_id == 1 ? true: false} className="font-bold text-success">Total Balance: {addCommas(round(netTotal + this.state.result.customer_balance-this.state.result.pay_balance))}</h4>
                                            </div>
 
                                              <div >
@@ -826,78 +1159,6 @@ import 'sweetalert/dist/sweetalert.css';
                                             <button onClick={ this.handleSubmit} disabled={this.state.selectedProductHeads.length? false : true} className="btn btn-success btn-lg">Confirm Order</button>
 
                                         </div>
-
-                                    </div>
-                                    <hr/>
-                                         <div className="row">
-
-                                            <div className="col-sm-12">
-
-                                                <div className={"table-responsive " + this.state.tableFullView}>
-
-                                                    <table className="table table-hover">
-                                                        <thead>
-                                                        <tr>
-                                                            <th>#</th>
-                                                            <th>Products</th>
-                                                            <th>Unit Price</th>
-                                                            <th>Quantity</th>
-                                                            <th>Disc</th>
-                                                            <th>Amount</th>
-                                                            <th>Disc %</th>
-                                                            <th>Amount</th>
-                                                            <th>Total Price</th>
-                                                            <th>Actions</th>
-                                                        </tr>
-                                                        </thead>
-                                                        <tfoot>
-                                                        <tr>
-                                                            <th></th>
-                                                            <th></th>
-                                                            <th>Unit Price</th>
-                                                            <th>Total: {totalQty}</th>
-                                                            <th>Total: {totalPrice}</th>
-                                                            <th></th>
-                                                        </tr>
-                                                        </tfoot>
-                                                        <tbody>
-
-                                                        {
-                                                            this.state.selectedProductHeads.length > 0 ?
-                                                                this.state.selectedProductHeads.map( (ph,index)=>{
-                                                                   return  <tr key={ph.id}>
-                                                                        <td>{index+1}</td>
-                                                                        <th>{ph.title}</th>
-                                                                        <td><input type="number" value={ph.price} id={ph.id} onChange={this.handleChangeProductPrice} /></td>
-                                                                        <td><input type="number" value={ph.qty} id={ph.id} onChange={this.handleChangeProductQty} /></td>
-                                                                        <td><input type="number" value={ph.netDisc} id={ph.id} onChange={this.handleChangeNetDiscount} /></td>
-                                                                        <td></td>
-                                                                        <td><input type="number" value={ph.netDiscPr} id={ph.id} onChange={this.handleChangeNetDiscountPercentage} /></td>
-                                                                        <td></td>
-                                                                       <th>{ph.qty*ph.price}</th>
-                                                                        <td>
-                                                                            <button className="btn btn-danger "
-                                                                                    onClick={()=>this.handleChangeProductDelete(ph.id)}
-                                                                                    ><span
-                                                                                className="glyphicon glyphicon-remove"></span>
-                                                                            </button>
-
-                                                                        </td>
-                                                                    </tr>
-                                                                } ):
-                                                                <tr>
-                                                                    <td>No Product Selected</td>
-
-                                                                </tr>
-                                                        }
-
-
-                                                        </tbody>
-
-                                                    </table>
-                                                </div>
-
-                                            </div>
                                         </div>
 
                                 </div>

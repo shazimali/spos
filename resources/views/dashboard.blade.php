@@ -128,6 +128,7 @@
                             </tr>
                             </thead>
                             <tbody>
+                            @if(count($recent_purchases))
                                 @foreach($recent_purchases as $rs)
                             <tr>
                             <td>{{$sr++}}</td>
@@ -137,6 +138,7 @@
                             <td><span class="{{$rs->invoice_type_id == 1?'text-success':'text-danger'}}">{{$rs->total_price}}</span></td>
                             </tr>
                                 @endforeach
+                            @endif
                             </tbody>
                         </table>
                     </div>

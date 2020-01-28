@@ -1,4 +1,4 @@
-export function addCommas(num) {
+const addCommas = (num) => {
     var str = num.toString().split('.');
     if (str[0].length >= 4) {
         //add comma every 3 digits befor decimal
@@ -11,3 +11,10 @@ export function addCommas(num) {
     }*/
     return str.join('.');
 }
+
+const round = (num) => { 
+    
+   return Math.round(num*2)/2
+ }
+
+ export {addCommas,round};

@@ -20,10 +20,19 @@
                     </div>
                     <div class="form-group ">
                         <label for="code" class="control-label">Unit:</label>
-                        <select class="form-control" name="unit_id">
+                        <select class="form-control" name="unit_id" id="unit_id-{{$head->id}}">
                             <option value="">Please Select</option>
                             @foreach($units as $unit)
                             <option @if($unit->id == $head->unit_id) selected @endif  value="{{ $unit->id }}">{{ $unit->title }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="form-group ">
+                        <label for="code" class="control-label">Brand:</label>
+                        <select class="form-control" name="brand_id" id="brand_id-{{$head->id}}">
+                            <option value="">Please Select</option>
+                            @foreach($brands as $brand)
+                            <option @if($brand->id == $head->brand_id) selected @endif  value="{{ $brand->id }}">{{ $brand->title }}</option>
                             @endforeach
                         </select>
                     </div>

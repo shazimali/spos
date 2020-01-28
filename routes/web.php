@@ -150,4 +150,8 @@ Route::group(['middleware' =>'auth'], function () {
     Route::get('/day-book','LedgerController@dayBook');
     Route::get('/day-book/search','LedgerController@dayBookSearch');
     Route::get('day-book/show','LedgerController@dayBookShow')->name('daybook-ledger-print');
+
+    //Tax
+
+    Route::get('/all-taxes','TaxController@index');
 });

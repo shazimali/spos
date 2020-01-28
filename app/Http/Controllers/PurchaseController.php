@@ -34,14 +34,14 @@ class PurchaseController extends Controller
                 'purchase'=>$purchase ,
                 'cBalance'=>Supplier::find($purchase->supplier_id)->cBalance(),
                 'payment_types'=> PaymentType::whereIn('id',[1,2])->orderBy('title')->get(),
-                'product_heads'=> ProductHead::orderBy('title')->get(),
+                'product_heads'=> ProductHead::orderBy('title')->with('brand')->get(),
             ];
         }
 
         return [
             'suppliers'=> Supplier::orderBy('name')->get(),
             'payment_types'=> PaymentType::whereIn('id',[1,2])->orderBy('title')->get(),
-            'product_heads'=> ProductHead::orderBy('title')->with('purchaseDetail')->get(),
+            'product_heads'=> ProductHead::orderBy('title')->with('purchaseDetail','brand')->get(),
             ];
     }
 

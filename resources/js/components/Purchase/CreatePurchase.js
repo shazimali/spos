@@ -190,7 +190,7 @@ import {addCommas} from "../helper/common.js";
             });
             let product_heads= res.data.product_heads.map((s)=>{
                 return ({
-                    label:s.title,
+                    label:s.title+"-"+s.brand.title,
                     value:s.id,
                     'price':s.purchase,
                     'retail':s.sale
@@ -604,7 +604,7 @@ import {addCommas} from "../helper/common.js";
                                          <div className="row">
                                             <div className="col-sm-12">
 
-                                            <div className={"table-responsive " + this.state.tableFullView}>
+                                            <div className="table-responsive">
                                                     <table className="table table-hover">
                                                         <thead>
                                                         <tr>

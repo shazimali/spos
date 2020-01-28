@@ -11,84 +11,90 @@
 </head>
 <body>
 
-
+@php  $tax_id = $invoice->saleDetails->first()->taxes->pluck('id'); @endphp
 <div id="pdf" >
     <div class="container">
         <br>
         <div class="card">
             <div class="card-body ">
-            <h1 class="text-center">{{$invoice->invoice_type_id == 1 ? 'SALE INVOICE #' : 'RETURN INVOICE #'}}  {{$invoice->id}} / Date: {{$invoice->date}}</h1>
+            <h1 class="text-center">{{$invoice->invoice_type_id == 1 ? 'BILL #' : 'RETURN BILL #'}}  {{$invoice->invoice_type_id == 1?$invoice_id:$invoice->id}} / Date: {{$invoice->date}} / {{ $invoice->payment_type_id == 1? 'CASH':'CREDIT'}}</h1>
             </div>
         </div>
         <br>
         <div class="card">
 
             <div class="card-body">
-                <div class="row mb-4">
-                    <div class="col-sm-6">
-                        <h6 class="mb-3">By:</h6>
-                        <div>
-                            <strong>I TECH DOOR</strong>
-                        </div>
-                        {{-- <div>Shop# 127</div>
-                        <div>Muslim road, Gujranwala</div>
-                        <div>Mob: +92 305 4949600</div>
-                        <div>Phone: +92 55 4222144</div> --}}
-                        <div>http://itechdoor.com</div>
-                        <div>Gujranwala, PAK</div>
-                        <div>Mob: +92 300 6472235</div>
-                        <div>Mod: +92 324 6280768</div>
-                    </div>
-
-                    <div class="col-sm-6">
-                        <h6 class="mb-3">To:</h6>
+            <div class="row mb-4">
+            <div class="col-sm-6">
+                    <h6 class="mb-3">To:</h6>
                         <div>
                             <strong>{{$invoice->customer->name}}</strong>
                         </div>
-                    <div>Customer ID:cs#{{$invoice->customer->id}}</div>
-                    @if($invoice->customer->company_name != "")
-                    <div>Compnay: {{$invoice->customer->company_name}}</div>
-                    @endif
-                    @if($invoice->customer->address1 != "")
-                    <div>Address: {{$invoice->customer->address1}}</div>
-                    @endif
-                    @if($invoice->customer->address2 != "")
-                    <div>Address2: {{$invoice->customer->address2}}</div>
-                    @endif
-                    @if($invoice->customer->city != "")
-                    <div>City: {{$invoice->customer->city}}</div>
-                    @endif
-                    @if($invoice->customer->email != "")
-                    <div>Email: {{$invoice->customer->email}}</div>
-                    @endif
-                    @if($invoice->customer->phone1 != "")
-                    <div>Phone: +92 {{$invoice->customer->phone1}}</div>
-                    @endif
-                    @if($invoice->customer->phone2 != "")
-                    <div>Phone2: +92 {{$invoice->customer->phone2}}</div>
-                    @endif
-                    </div>
-                    <div class="ml-3 row">
-                        <h6 {{$invoice->remarks?'':"hidden"}}>Remarks:</h6><span>{{$invoice->remarks}}</span>
-                    </div>
+                        @if($invoice->customer->company_name != "")
+                        <div>Company: {{$invoice->customer->company_name}}</div>
+                        @endif
+                        @if($invoice->customer->address1 != "")
+                        <div>Address: {{$invoice->customer->address1}}</div>
+                        @endif
+                        @if($invoice->customer->address2 != "")
+                        <div>Address2: {{$invoice->customer->address2}}</div>
+                        @endif
+                        @if($invoice->customer->city != "")
+                        <div>City: {{$invoice->customer->city}}</div>
+                        @endif
+                        @if($invoice->customer->phone1 != "")
+                        <div>Phone: +92 {{$invoice->customer->phone1}}</div>
+                        @endif
+                        @if($invoice->customer->phone2 != "")
+                        <div>Phone2: +92 {{$invoice->customer->phone2}}</div>
+                        @endif
+                        @if($invoice->customer->nic != "" && count($tax_id))
+                        <div>CNIC: +92 {{$invoice->customer->nic}}</div>
+                        @endif
+                        @if($invoice->customer->passport_no != "" && count($tax_id))
+                        <div>GST: {{$invoice->customer->passport_no}}</div>
+                        @endif
+                        @if($invoice->customer->email != "" && count($tax_id))
+                        <div>NTN: {{$invoice->customer->email}}</div>
+                        @endif
+                        @if($invoice->remarks != "")
+                        <div>Remarks: {{$invoice->remarks}}</div>
+                        @endif
                 </div>
-
+                @if(count($tax_id))
+                    @include('_layout.information')
+                @endif
+            </div>
+               
                 <div class="table-responsive-sm">
                     <table class="table table-striped">
                         <thead>
                         <tr>
                             <th class="center">#</th>
-                            <th>Product Code</th>
+                            <th>Code</th>
                             <th>Product Title</th>
-
                             <th class="right">Unit Price</th>
                             <th class="center">Qty</th>
+
+                            @if($invoice->saleDetails->sum('net_percentage_discount') > 0)
+                            <th class="center">Disc%</th>
+                            <th class="center">Disc Amount</th>
+                            @endif
+                            @if($invoice->saleDetails->sum('net_discount') > 0)
+                            <th class="center">Disc</th>
+                            @endif
+                            @foreach($taxes as $tax)
+                            @if(in_array($tax->id,$tax_id->toArray()))
+                            <th class="center">{{$tax->title.'('.$tax->value.'%)'}}</th>
+                            @endif
+                            @endforeach
                             <th class="right">Total</th>
                         </tr>
                         </thead>
                         <tbody>
-                        @php($no=1)
+                        @php $no=1; $net_total= 0; $total_ext_tax=0; $total_gst_tax=0; $total_tax=0; $total_net_pr_dics_am= 0;$total_net_disc=0; $total_net_pr_dics = 0; @endphp
                        @foreach($invoice->saleDetails as $item)
+                        @php $current_tax =0; $total_net_pr_dics +=$item->net_percentage_discount;  $disc = $item->total_price * $item->total_qty/100 * $item->net_percentage_discount; $total_net_pr_dics_am += $disc; $total_net_disc += $item->net_discount; @endphp   
                         <tr>
                             <td class="center">{{$no++}}</td>
                             <td class="left strong">{{$item->productHead->code}}</td>
@@ -96,9 +102,60 @@
 
                             <td class="right">{{$item->total_price}}</td>
                             <td class="center">{{$item->total_qty}}</td>
-                            <td class="right">{{$item->total_price * $item->total_qty}}</td>
+                            @if($invoice->saleDetails->sum('net_percentage_discount') > 0)
+                            <td class="center">{{$item->net_percentage_discount}}%</td>
+                            <td class="center">{{$disc}}</td>
+                            @endif
+                            @if($invoice->saleDetails->sum('net_discount') > 0)
+                            <td class="center">{{$item->net_discount}}</td>
+                            @endif
+                            @if($item->taxes->count() > 0)
+                            @php $show_first_tax=0; $showTotalTax = 0;@endphp
+                            @foreach($item->taxes as $tax)
+                            @php 
+                            if($loop->first){
+                                $show_first_tax = $item->total_price*$item->total_qty/100*$tax->value;
+                                $showTotalTax = $show_first_tax;
+                                $current_tax +=$item->total_price*$item->total_qty/100*$tax->value;
+                                $total_gst_tax +=$item->total_price*$item->total_qty/100*$tax->value;
+                            }
+                            if(!$loop->first){
+                            $showTotalTax =  ($tax->value/100) * ($item->total_price*$item->total_qty + $show_first_tax);
+                            $total_ext_tax +=$showTotalTax;
+                            $current_tax += ($tax->value/100) * ($item->total_price*$item->total_qty + $show_first_tax);
+                            }
+                            @endphp
+                            <td class="center"> {{ number_format($showTotalTax,2,'.','') }}</td>
+                            @endforeach
+                            @endif
+                            @php 
+                            $net_total += $item->total_price * $item->total_qty -$item->net_discount - $disc + $current_tax;
+                            @endphp
+                            <td class="right">{{number_format($item->total_price * $item->total_qty -$item->net_discount - $disc + $current_tax, 2, '.', '')}}</td>
                         </tr>
                        @endforeach
+                       <tfoot>
+                       <tr>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td> <strong>{{$invoice->total_qty}}</strong></td>
+                            @if($invoice->saleDetails->sum('net_percentage_discount') > 0)
+                            <!-- <td><strong>{{$total_net_pr_dics}}%</strong></td> -->
+                            <td></td>
+                            <td><strong>{{number_format($total_net_pr_dics_am, 2, '.', '')}}</strong></td>
+                            @endif
+                            @if($invoice->saleDetails->sum('net_discount') > 0)
+                            <td> <strong>{{$total_net_disc}}</strong> </td>
+                            @endif
+                            @if(count($tax_id))
+                            <td><strong>{{number_format($total_gst_tax, 2, '.', '')}}</strong></td>
+                            <td><strong>{{number_format($total_ext_tax, 2, '.', '')}}</strong></td>
+                            @endif
+                            <td><strong>{{number_format($net_total, 2, '.', '')}}</strong></td>
+                       </tr>
+                       </tfoot>
                         </tbody>
                     </table>
                 </div>
@@ -123,23 +180,6 @@
                                 {{--<td class="right">$1,699,40</td>--}}
                             {{--</tr>--}}
 
-                            <tr>
-                                <td class="left">
-                                    <strong>Total Quantity</strong>
-                                </td>
-                                <td class="right">
-                                    <strong>{{$invoice->total_qty}}</strong>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td class="left">
-                                    <strong>Gross Total</strong>
-                                </td>
-                                <td class="right">
-                                    <strong>{{$invoice->total_price}}</strong>
-                                </td>
-                            </tr>
                             @if($invoice->discount > 0)
                             <tr>
                                 <td class="left">
@@ -150,23 +190,39 @@
                                 </td>
                             </tr>
                             @endif
+                            @if($invoice->discount > 0)
+                            <tr>
+                                <td class="left">
+                                    <strong>Discount%</strong>
+                                </td>
+                                <td class="right">
+                                    <strong>{{$invoice->pr_dics}}%</strong>
+                                </td>
+                            </tr>
+                            @endif
                             @if($invoice->net_total > 0)
                             <tr>
                                 <td class="left">
                                     <strong>Net Total</strong>
                                 </td>
                                 <td class="right">
-                                    <strong>{{$invoice->net_total}}</strong>
+                                    <strong>{{number_format($invoice->net_total,2)}}</strong>
                                 </td>
                             </tr>
                             @endif
-                            @if($invoice->payment_type_id == 2)
+                            @if($invoice->payment_type_id == 2 || $invoice->invoice_type_id == 2)
                             <tr>
                                 <td class="left">
-                                    <strong>Payment</strong>
+
+                                    <strong> {{$invoice->invoice_type_id == 1? 'Remaining': 'Previous'}} Balance</strong>
                                 </td>
                                 <td class="right">
-                                    <strong>{{$invoice->pay}}</strong>
+                                @if($invoice->invoice_type_id == 2)
+                                <strong>{{number_format($invoice->closing_balance + $invoice->total_price,2)}}</strong>
+                                @endif
+                                @if($invoice->invoice_type_id == 1)
+                                <strong>{{number_format($invoice->closing_balance - $invoice->net_total,2)}}</strong>
+                                @endif
                                 </td>
                             </tr>
                             @endif
@@ -176,7 +232,7 @@
                                     <strong>Balance</strong>
                                 </td>
                                 <td class="right">
-                                    <strong>{{$invoice->closing_balance}}</strong>
+                                    <strong>{{ number_format($invoice->closing_balance,2) }}</strong>
                                 </td>
                             </tr>
                             @endif
@@ -189,7 +245,7 @@
 
             </div>
         </div>
-                <p class="mb-0">Developed by: http://itechdoor.com Contacts: +92 300 6472235, +92 324 6289768</p>
+                <!-- <p class="mb-0">Developed by SHAZIM, Contacts +92 300 6472235</p> -->
     </div>
 </div>
 

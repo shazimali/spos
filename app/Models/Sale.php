@@ -43,6 +43,11 @@ class Sale extends Model
         return $query->with('customer','saleDetail.purchaseRate');
     }
 
+    public function customerSale()
+    {
+        return $this->belongsToMany(Sale::class,'customer_sale');
+    }
+
 
 
 
