@@ -61,7 +61,7 @@ class SaleController extends Controller
             'customer_id'=>$request->customer,
             'total_price'=>$request->totalPrice,
             'total_qty'=>$request->totalQty,
-            'cheque_id'=>$request->cheque_id,
+            'cheque_id'=> empty($request->tax_ids) ? 0:1,
             'cheque_date'=>$request->cheque_date,
             'bank'=>$request->cheque_bank,
             'cheque_amount'=>$request->cheque_amount,
@@ -87,11 +87,13 @@ class SaleController extends Controller
                 'net_percentage_discount' => empty($request->tax_ids)? $product['netDiscPr']:0, 
                 ]);
             $sale_detail->taxes()->sync($request->tax_ids);
-            $stock =Stock::where('product_head_id',$product['id'])->first();
-
-                $stock->out_qty += $product['qty'];
-
-                $stock->save();
+            if(empty($request->tax_ids)){
+                $stock =Stock::where('product_head_id',$product['id'])->first();
+    
+                    $stock->out_qty += $product['qty'];
+    
+                    $stock->save();
+            }
         }
 
         if ($request->pf){
@@ -117,7 +119,7 @@ class SaleController extends Controller
         return view('sales.show',[
             'invoice'=>Sale::where('id',$id)->with(['saleDetail' => function($query){ return $query->with('taxes')->get(); }])->first(),
             'taxes' => Tax::all(),
-            'invoice_id' => 'CS'.$customer_detail->id."-".$count 
+            'invoice_id' =>  $sale->cheque_id == 0? 'CS'.$customer_detail->id."-".$count : $sale->id
         ]);
     }
 
@@ -138,31 +140,9 @@ class SaleController extends Controller
     public function update(CreateSaleRequest $request, $id)
     {
         $sale = Sale::find($id);
-        // $old_cus=$sale->customer_id;
-        // $new_cus=$request->customer;
-
-        // if ($old_cus != $new_cus )
-        // {
-        //     $customer = customer::find($old_cus);
-        //     $customer->balance -= ($sale->net_total - $sale->pay);
-        //     $customer->save();
-
-        //     customer::whereId($request->customer)
-        //         ->update([
-        //             'balance'=>$request->balance
-        //         ]);
-        // }
-        // else{
-
-        //      customer::whereId($old_cus)
-        //         ->update([
-        //             'balance'=>$request->balance
-        //         ]);
-        // }
-        // $sale->total_price=$request->totalPrice;
         $sale->total_price=$request->netTotal;
         $sale->total_qty=$request->totalQty;
-        $sale->cheque_id=$request->cheque_id;
+        $sale->cheque_id = empty($request->tax_ids) ? 0:1;
         $sale->cheque_date=$request->cheque_date;
         $sale->bank=$request->bank;
         $sale->customer_id=$request->customer;
@@ -175,6 +155,8 @@ class SaleController extends Controller
         $sale->remarks = $request->remarks;
         $sale->date = $request->date;
         $sale->time = $request->time;
+        $sale->closing_balance = $request->balance;
+
 
         $sale->save();
 
@@ -183,11 +165,10 @@ class SaleController extends Controller
         foreach ($sale->saleDetails as $oldproduct)
         {
             $stock= Stock::where('product_head_id',$oldproduct->product_head_id)->first();
-
+            if(empty($request->tax_ids)){
             $stock->out_qty -= $oldproduct->total_qty;
-
             $stock->save();
-
+            }
             $oldproduct->delete();
         }
 

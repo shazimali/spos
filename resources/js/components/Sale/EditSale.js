@@ -307,14 +307,13 @@ import Switch from 'react-switchery-component';
                     balance:parseFloat(s.balance)
                 })
             });
-
             let selectedProductHeads= sale.sale_details.map((ph)=>{
                 return ({
                     id:ph.product_head_id,
                     title:ph.product_head.title+"-"+ph.product_head.brand.title,
                     price:parseFloat(ph.total_price),
-                    netDisc:parseFloat(ph.net_discount),
-                    netDiscPr:parseFloat(ph.net_percentage_discount),
+                    netDisc: ph.net_discount != null? parseFloat(ph.net_discount):0,
+                    netDiscPr: ph.net_percentage_discount != null ? parseFloat(ph.net_percentage_discount):0,
                     stock:parseFloat(ph.product_head.stock.total_qty-ph.product_head.stock.out_qty),
                     qty:ph.total_qty
                 })
@@ -1261,8 +1260,8 @@ import Switch from 'react-switchery-component';
                                             </div>
                                            <div>
                                                <h4 hidden={this.state.result.payment_type_id == 1 ? true: false} className="font-bold">Current Balance: {addCommas((netTotal-this.state.result.pay_balance).toFixed(2))}</h4>
-                                               <h4 className="font-bold text-danger">Remaining Balance: {addCommas(this.state.result.customer_balance)}</h4>
-                                               <h4 hidden={this.state.result.payment_type_id == 1 ? true: false} className="font-bold text-success">Total Balance: {addCommas(round(netTotal + this.state.result.customer_balance-this.state.result.pay_balance))}</h4>
+                                               <h4 className="font-bold text-danger">Remaining Balance: {addCommas(this.state.result.customer_balance-this.state.result.pay_balance + netTotal)}</h4>
+                                               <h4 hidden={this.state.result.payment_type_id == 1 ? true: false} className="font-bold text-success">Total Balance: {addCommas(this.state.result.customer_balance-this.state.result.pay_balance + (netTotal - this.state.result.old_net_total))}</h4>
                                            </div>
 
                                              <div >

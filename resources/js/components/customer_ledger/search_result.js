@@ -1,17 +1,22 @@
 import React, {Component} from 'react'
 import Moment from 'react-moment';
 import Loader from 'react-loader';
+import {addCommas,round} from "../helper/common.js";
 class SearchResult extends Component{
 
     constructor(props){
 
         super(props);
-
+        
 
     }
     render(){
 
         let prev_balance = this.props.balance;
+        let voucher_count = 0;
+        let voucher_num = 0;
+        let sale_count = 0;
+        let sale_num = 0;
         return(
 
                     <div class="row">
@@ -26,8 +31,8 @@ class SearchResult extends Component{
                                 <th>Date</th>
                                 <th>VchNo</th>
                                 <th>Description</th>
-                                <th>Credit</th>
                                 <th>Debit</th>
+                                <th>Credit</th>
                                 <th>Balance</th>
                             </tr>
                         </thead>
@@ -40,10 +45,13 @@ class SearchResult extends Component{
 
                                 let debit=r.net_total ? parseFloat(r.net_total):0  ;
                                 let credit=r.pay ? parseFloat(r.pay):0  + r.amount? parseFloat(r.amount):0;
-
+                                voucher_num = r.id;
                                 let balance=debit-credit;
                                 if(r.amount){
-                                    debit= prev_balance
+                                    debit= prev_balance;
+                                    voucher_count++
+                                    voucher_num = voucher_count;
+                                    
                                  }
                                  if(r.invoice_type_id==2){
                                      debit=parseFloat(r.total_price);
@@ -55,25 +63,24 @@ class SearchResult extends Component{
                                  }else{
 
                                     prev_balance+=balance;
+                                    sale_num = r.customer_id+''+sale_count;
 
                                  }
 
                                 return(
                                         <tr>
                                             <td><Moment format="D MMM YYYY" withTitle>{r.date}</Moment></td>
-
-                                            <td>
-                                           {r.id }
-                                            </td>
-                                            <td> { r.invoice_type_id==1 ? 'Sale Invoice' :''  } { r.invoice_type_id==2 ? 'Return Invoice' :''  } { r.amount ? 'Voucher' :''  } : #{r.id}</td>
-                                            <td>{credit}</td>
-                                            <td>{debit}</td>
-                                            <td>{prev_balance}</td>
+                                            <td> { r.invoice_type_id==1 ? sale_num  :''  } { r.invoice_type_id==2 ? r.id :''  } { r.amount ? voucher_count  :''  }</td>  
+                                            <td> { r.invoice_type_id==1 ? 'Sale Invoice#'+sale_num  :''  } { r.invoice_type_id==2 ? 'Return Invoice#'+r.id :''  } { r.amount ? 'Voucher#'+voucher_count  :''  }</td>
+                                            <td>{addCommas((credit).toFixed(2))}</td>
+                                            <td>{addCommas((debit).toFixed(2))}</td>
+                                            <td>{addCommas((prev_balance).toFixed(2))}</td>
+                                <td className="hidden">{sale_count++}</td>
                                         </tr>
-
+                                        
                                         );
 
-
+                                        
                             })
                             :''
                         }

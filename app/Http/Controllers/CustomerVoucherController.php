@@ -46,8 +46,12 @@ class CustomerVoucherController extends Controller
 
             'date'=>'required',
             'customer_name'=>'required',
-            'amount'=>'required|numeric',
+            'amount'=>'required',
         ]);
+        $amount = $request->amount;
+        if( strpos($amount, ',') !== false ) {
+           $amount =  str_replace(',','', $amount);
+        }
 
         $date = date("Y-m-d H:i:s", strtotime($request->date));
 
@@ -55,17 +59,11 @@ class CustomerVoucherController extends Controller
 
             'date' => $date,
             'customer_id' => $request->customer_name,
-            'amount' => $request->amount,
-            'closing_balance' => $request->balance - $request->amount,
+            'amount' => $amount,
+            'closing_balance' => $request->balance,
             'time'=> $request->time,
             'remarks'=> $request->remarks,
         ]);
-
-        $customer = Customer::whereId($request->customer_name)->first();
-
-        $customer->balance = $customer->balance - $request->amount;
-
-        $customer->save();
 
         return 1;
     }
@@ -105,48 +103,21 @@ class CustomerVoucherController extends Controller
 
             'date'=>'required',
             'customer_name'=>'required',
-            'amount'=>'required|numeric',
+            'amount'=>'required',
         ]);
+        $amount = $request->amount;
+        if( strpos($amount, ',') !== false ) {
+           $amount =  str_replace(',','', $amount);
+        }
         $date = date("Y-m-d H:i:s", strtotime($request->date));
 
         $oldVoucher = CustomerVoucher::whereId($customerVoucher)->first();
 
-        $balance_difference = $oldVoucher->amount - $request->amount;
-
-        if($request->customer_name != $oldVoucher->customer_id){
-
-            $oldCustomer = Customer::whereId($oldVoucher->customer_id)->first();
-
-            $oldCustomer->update([
-
-                'balance' => $oldCustomer->balance + $oldVoucher->amount
-            ]);
-
-            $oldCustomer->save();
-
-            $newCustomer = Customer::whereId($request->customer_name)->first();
-
-            $newCustomer->balance = $newCustomer->balance - $request->amount;
-
-            $newCustomer->save();
-
-        }
-
-        else{
-
-            $customer = Customer::whereId($request->customer_name)->first();
-
-            $customer->balance = ($customer->balance + $oldVoucher->amount) - $request->amount;
-
-            $customer->save();
-
-
-        }
 
         CustomerVoucher::whereId($customerVoucher)->update([
             'customer_id' => $request->customer_name,
-            'amount' => $request->amount,
-            'closing_balance' => $oldVoucher->closing_balance - ($request->amount - $oldVoucher->amount),
+            'amount' => $amount,
+            'closing_balance' => $oldVoucher->closing_balance - ($amount - $oldVoucher->amount),
             'remarks' => $request->remarks
         ]);
 

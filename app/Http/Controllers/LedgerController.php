@@ -42,7 +42,7 @@ class LedgerController extends Controller
                     $q->where('date','<', $from_date);
                 });
             },
-            'customer_voucher' => function ($q) use($from_date) {
+            'customer_vouchers' => function ($q) use($from_date) {
                 $q->when($from_date,function($q,$from_date){
 
                     $q->where('date','<', $from_date);
@@ -54,7 +54,6 @@ class LedgerController extends Controller
             }else {
                 $balance=0;
             }
-
         $results =  Customer::when($customer,function ($query,$customer){
 
            return $query->whereId($customer);
@@ -73,7 +72,7 @@ class LedgerController extends Controller
             });
 
         },
-        'customer_voucher' => function ($q) use($from_date,$to_date) {
+        'customer_vouchers' => function ($q) use($from_date,$to_date) {
             $q->when($from_date,function($q,$from_date){
 
                 $q->where('date','>=', $from_date);
@@ -89,7 +88,7 @@ class LedgerController extends Controller
             $final_collecttion = null;
             foreach($results as $rs){
 
-                $final_collection = array_merge($rs->sale->toArray(),$rs->customer_voucher->toArray());
+                $final_collection = array_merge($rs->sale->toArray(),$rs->customer_vouchers->toArray());
 
                 array_multisort(array_column($final_collection, 'date'), SORT_ASC,
                 array_column($final_collection, 'time'),      SORT_ASC,
@@ -117,7 +116,7 @@ class LedgerController extends Controller
                     $q->where('date','<', $from_date);
                 });
             },
-            'customer_voucher' => function ($q) use($from_date) {
+            'customer_vouchers' => function ($q) use($from_date) {
                 $q->when($from_date,function($q,$from_date){
 
                     $q->where('date','<', $from_date);
@@ -148,7 +147,7 @@ class LedgerController extends Controller
             });
 
         },
-        'customer_voucher' => function ($q) use($from_date,$to_date) {
+        'customer_vouchers' => function ($q) use($from_date,$to_date) {
             $q->when($from_date,function($q,$from_date){
 
                 $q->where('date','>=', $from_date);
@@ -164,7 +163,7 @@ class LedgerController extends Controller
             $final_collecttion = null;
             foreach($results as $rs){
 
-                $final_collection = array_merge($rs->sale->toArray(),$rs->customer_voucher->toArray());
+                $final_collection = array_merge($rs->sale->toArray(),$rs->customer_vouchers->toArray());
 
                 usort($final_collection, function($a, $b) {
                     return $a['date'] <=> $b['date'];

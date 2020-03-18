@@ -4,6 +4,7 @@ import Select from 'react-select';
 import SweetAlert from 'sweetalert-react';
 import 'react-switchery-component/react-switchery-component.css';
 import 'sweetalert/dist/sweetalert.css';
+import {addCommas,round} from "../helper/common.js";
 import Switch from 'react-switchery-component';
  class EditReturnSale extends Component {
     constructor(props){
@@ -28,10 +29,12 @@ import Switch from 'react-switchery-component';
                 cheque_amount:null,
                 cheque_date:null,
                 sale:[],
+                old_discount:0,
                 pf:true,
                 date:'',
                 remarks:'',
                 time:'',
+                discount:0,
                 balance_difference:'',
                 old_total_price:''
             },
@@ -56,7 +59,7 @@ import Switch from 'react-switchery-component';
     this.handleChangeFullView = this.handleChangeFullView.bind(this);
     this.handleChangePrint=this.handleChangePrint.bind(this);
     this.handleShowDateTime = this.handleShowDateTime.bind(this);
-
+    this.handleDiscount=this.handleDiscount.bind(this);
     }
 
     handleChangePrint(){
@@ -78,9 +81,9 @@ import Switch from 'react-switchery-component';
              totalPrice += sp.price *sp.qty;
 
          });
-
-        let currentBalance = totalPrice-this.state.result.pay_balance;
-
+         totalPrice -= this.state.result.discount;
+        let currentBalance = totalPrice-this.state.result.pay_balance - this.state.result.old_total_price -this.state.result.old_discount;
+        
         let balance = 9;
 
          if (this.state.result.sale.customer_id === this.state.result.customer_id){
@@ -111,6 +114,7 @@ import Switch from 'react-switchery-component';
              remarks:this.state.result.remarks,
              balance_difference: parseFloat(totalPrice) - parseFloat(this.state.result.old_total_price),
              totalQty,
+             discount:this.state.result.discount,
              totalPrice,
              balance,
 
@@ -164,7 +168,7 @@ import Switch from 'react-switchery-component';
         axios.get(url+'/sales-get-customers/'+id+'/edit').then(res=>{
 
             let sale = res.data.sale;
-
+            let old_discount = sale.discount; 
             let customers= res.data.customers.map((s)=>{
                 return ({
                     label:s.name,
@@ -205,14 +209,16 @@ import Switch from 'react-switchery-component';
                   payment_type_id:sale.payment_type.id,
                   pay_balance:parseFloat(sale.pay),
                   sale,
+                  discount:parseFloat(sale.discount),
                   date:sale.date,
                   time:sale.time,
                   old_total_price:sale.total_price,
-                  remarks:sale.remarks
+                  remarks:sale.remarks,
+                  old_discount
 
               },
               selectedProductHeads,
-              product_heads
+              product_heads,
           })
         });
 
@@ -257,6 +263,30 @@ import Switch from 'react-switchery-component';
          }
 
 
+
+    }
+    handleDiscount(e){
+
+        let discount = parseFloat(e.target.value);
+        if (discount){
+            this.setState({
+
+                result:{
+                    ...this.state.result,
+                    discount
+                }
+            });
+        }else
+        {
+            this.setState({
+
+                result:{
+                    ...this.state.result,
+                    discount:0
+                }
+            });
+
+        }
 
     }
      selectCustomer(e){
@@ -529,8 +559,7 @@ import Switch from 'react-switchery-component';
              totalPrice += sp.price *sp.qty;
             })
              :'';
-
-         let currentBalance = totalPrice-this.state.result.pay_balance;
+        let currentBalance = totalPrice -this.state.result.pay_balance - this.state.result.discount;
 
         return (
             <div className="row">
@@ -732,16 +761,19 @@ import Switch from 'react-switchery-component';
                                             <br/>
                                             <hr/>
                                             <h4 className="font-bold">Total Amount: {totalPrice}</h4>
+                                            <div className="form-group">
+                                                <input type="number" disabled={this.state.selectedProductHeads.length? false : true}  className="form-control" placeholder="Discount"  value={this.state.result.discount} onChange={this.handleDiscount} />
+                                            </div>
                                             <hr/>
-                                            {/*<div className="form-group" hidden={this.state.result.payment_type_id == 1 ? false: true }>*/}
-                                                {/*<input type="number" value={this.state.result.pay_balance} className="form-control" placeholder="Pay" onChange={this.handlePay} />*/}
-                                            {/*</div>*/}
-                                            <h4 className="font-bold">Current Balance: {totalPrice-this.state.result.pay_balance}</h4>
-                                            <h4 className="font-bold ">Remaining Balance: {this.state.result.customer_balance}</h4>
-                                            <h4 className="font-bold ">Total Balance: {  this.state.result.sale &&  this.state.result.sale.customer_id === this.state.result.customer_id
-                                                ? this.state.result.customer_balance +(this.state.result.sale.total_price - this.state.result.sale.pay - currentBalance)
+                                            <h4 className="font-bold">Current Balance: { addCommas(totalPrice - this.state.result.discount) }</h4>
+                                            <h4 className="font-bold ">Remaining Balance:{ 
+                                            this.state.result.discount == this.state.result.old_discount ?
+                                             addCommas(this.state.result.customer_balance)
+                                            : addCommas((this.state.result.customer_balance - this.state.result.old_discount) + this.state.result.discount  ) }</h4>
+                                            {/* <h4 className="font-bold ">Total Balance: {  this.state.result.sale &&  this.state.result.sale.customer_id === this.state.result.customer_id
+                                                ? addCommas( this.state.result.customer_balance +(this.state.result.sale.total_price - this.state.result.sale.pay - currentBalance))
 
-                                                : this.state.result.customer_balance -totalPrice }</h4>
+                                                : addCommas(this.state.result.customer_balance -totalPrice ) }</h4> */}
 
                                              <div >
                                                  {
