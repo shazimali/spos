@@ -128,7 +128,6 @@ class LedgerController extends Controller
             }else {
                 $balance=0;
             }
-
         $results =  Customer::when($customer,function ($query,$customer){
 
            return $query->whereId($customer);
@@ -165,11 +164,10 @@ class LedgerController extends Controller
 
                 $final_collection = array_merge($rs->sale->toArray(),$rs->customer_vouchers->toArray());
 
-                usort($final_collection, function($a, $b) {
-                    return $a['date'] <=> $b['date'];
-                });
+                array_multisort(array_column($final_collection, 'date'), SORT_ASC,
+                array_column($final_collection, 'time'),      SORT_ASC,
+                $final_collection);
             }
-
             return view('ledgers.customer_show',[
 
                 'customer' => Customer::whereId($customer)->first(),

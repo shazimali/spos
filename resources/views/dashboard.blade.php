@@ -58,6 +58,22 @@
                 </ul>
             </div>
         </div>
+        <div class="col-lg-3 col-sm-6 col-xs-12">
+            <div class="white-box analytics-info">
+                <h3 class="box-title">Total Debit</h3>
+                <ul class="list-inline two-part">
+                <li class="text-right"><span class="counter text-success">{{ number_format($debit,2) }}</span></li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-lg-3 col-sm-6 col-xs-12">
+            <div class="white-box analytics-info">
+                <h3 class="box-title">Total Credit</h3>
+                <ul class="list-inline two-part">
+                <li class="text-right"><span class="text-danger">{{ number_format($credit,2) }}</span></li>
+                </ul>
+            </div>
+        </div>
     </div>
     <!--/.row -->
     <!--row -->
