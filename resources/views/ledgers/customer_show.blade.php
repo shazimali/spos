@@ -28,17 +28,6 @@
                 <div class="row mb-4">
                     <div class="col-sm-6">
                         <h6 class="mb-3">By:</h6>
-                        <div>
-                            <strong>I TECH DOOR</strong>
-                        </div>
-                        {{-- <div>Shop# 127</div>
-                        <div>Muslim road, Gujranwala</div>
-                        <div>Mob: +92 305 4949600</div>
-                        <div>Phone: +92 55 4222144</div> --}}
-                        <div>http://itechdoor.com</div>
-                        <div>Gujranwala, PAK</div>
-                        <div>Mob: +92 300 6472235</div>
-                        <div>Mod: +92 324 6280768</div>
                     </div>
 
                     <div class="col-sm-6">
@@ -82,8 +71,8 @@
                             <th class="center">VchNo</th>
                             <th class="center">Description</th>
 
-                            <th class="center">Credit</th>
                             <th class="center">Debit</th>
+                            <th class="center">Credit</th>
                             <th class="center">Balance</th>
                         </tr>
                         </thead>
@@ -127,9 +116,9 @@
                             <td>{{$item['date']}}</td>
                                 <td>Sale Invoice: #{{$item['id']}}</td>
                                 <td>{{ (array_key_exists('invoice_type_id',$item)? $item['invoice_type_id']:0 ) ==1 ? 'Sale Invoice' :''  }} {{ (array_key_exists('invoice_type_id',$item)?$item['invoice_type_id']:0)==2 ? 'Return Invoice' :''  }} {{ array_key_exists('amount',$item) ? 'Voucher' :''  }} : #{{$item['id']}}</td>
-                                <td>{{$credit}}</td>
-                                <td>{{$debit}}</td>
-                                <td>{{$prev_balance}}</td>
+                                <td>{{ number_format($credit,2)}}</td>
+                                <td>{{number_format($debit,2)}}</td>
+                                <td>{{number_format($prev_balance,2) }}</td>
                             </tr>
 
 

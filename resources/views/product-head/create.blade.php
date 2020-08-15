@@ -20,10 +20,27 @@
                     </div>
                     <div class="form-group ">
                         <label for="code" class="control-label">Unit:</label>
-                        <select class="form-control" name="unit_id">
+                        <select class="form-control" name="unit_id" id="unit_id">
                             <option value="">Please Select</option>
                             @foreach($units as $unit)
+                            @if($loop->first)
+                            <option selected value="{{ $unit->id }}">{{ $unit->title }}</option>
+                            @else
                             <option value="{{ $unit->id }}">{{ $unit->title }}</option>
+                            @endif
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="form-group ">
+                        <label for="code" class="control-label">Brand:</label>
+                        <select class="form-control" name="brand_id" id="brand_id">
+                            <option value="">Please Select</option>
+                            @foreach($brands as $brand)
+                            @if($loop->first)
+                            <option selected value="{{ $brand->id }}">{{ $brand->title }}</option>
+                            @else
+                            <option value="{{ $brand->id }}">{{ $brand->title }}</option>
+                            @endif
                             @endforeach
                         </select>
                     </div>

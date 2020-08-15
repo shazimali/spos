@@ -24174,6 +24174,242 @@ module.exports = shouldUseNative() ? Object.assign : function (target, source) {
 
 /***/ }),
 
+/***/ "./node_modules/path-browserify/index.js":
+/*!***********************************************!*\
+  !*** ./node_modules/path-browserify/index.js ***!
+  \***********************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+/* WEBPACK VAR INJECTION */(function(process) {// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+// resolves . and .. elements in a path array with directory names there
+// must be no slashes, empty elements, or device names (c:\) in the array
+// (so also no leading and trailing slashes - it does not distinguish
+// relative and absolute paths)
+function normalizeArray(parts, allowAboveRoot) {
+  // if the path tries to go above the root, `up` ends up > 0
+  var up = 0;
+  for (var i = parts.length - 1; i >= 0; i--) {
+    var last = parts[i];
+    if (last === '.') {
+      parts.splice(i, 1);
+    } else if (last === '..') {
+      parts.splice(i, 1);
+      up++;
+    } else if (up) {
+      parts.splice(i, 1);
+      up--;
+    }
+  }
+
+  // if the path is allowed to go above the root, restore leading ..s
+  if (allowAboveRoot) {
+    for (; up--; up) {
+      parts.unshift('..');
+    }
+  }
+
+  return parts;
+}
+
+// Split a filename into [root, dir, basename, ext], unix version
+// 'root' is just a slash, or nothing.
+var splitPathRe =
+    /^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/]+?|)(\.[^.\/]*|))(?:[\/]*)$/;
+var splitPath = function(filename) {
+  return splitPathRe.exec(filename).slice(1);
+};
+
+// path.resolve([from ...], to)
+// posix version
+exports.resolve = function() {
+  var resolvedPath = '',
+      resolvedAbsolute = false;
+
+  for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
+    var path = (i >= 0) ? arguments[i] : process.cwd();
+
+    // Skip empty and invalid entries
+    if (typeof path !== 'string') {
+      throw new TypeError('Arguments to path.resolve must be strings');
+    } else if (!path) {
+      continue;
+    }
+
+    resolvedPath = path + '/' + resolvedPath;
+    resolvedAbsolute = path.charAt(0) === '/';
+  }
+
+  // At this point the path should be resolved to a full absolute path, but
+  // handle relative paths to be safe (might happen when process.cwd() fails)
+
+  // Normalize the path
+  resolvedPath = normalizeArray(filter(resolvedPath.split('/'), function(p) {
+    return !!p;
+  }), !resolvedAbsolute).join('/');
+
+  return ((resolvedAbsolute ? '/' : '') + resolvedPath) || '.';
+};
+
+// path.normalize(path)
+// posix version
+exports.normalize = function(path) {
+  var isAbsolute = exports.isAbsolute(path),
+      trailingSlash = substr(path, -1) === '/';
+
+  // Normalize the path
+  path = normalizeArray(filter(path.split('/'), function(p) {
+    return !!p;
+  }), !isAbsolute).join('/');
+
+  if (!path && !isAbsolute) {
+    path = '.';
+  }
+  if (path && trailingSlash) {
+    path += '/';
+  }
+
+  return (isAbsolute ? '/' : '') + path;
+};
+
+// posix version
+exports.isAbsolute = function(path) {
+  return path.charAt(0) === '/';
+};
+
+// posix version
+exports.join = function() {
+  var paths = Array.prototype.slice.call(arguments, 0);
+  return exports.normalize(filter(paths, function(p, index) {
+    if (typeof p !== 'string') {
+      throw new TypeError('Arguments to path.join must be strings');
+    }
+    return p;
+  }).join('/'));
+};
+
+
+// path.relative(from, to)
+// posix version
+exports.relative = function(from, to) {
+  from = exports.resolve(from).substr(1);
+  to = exports.resolve(to).substr(1);
+
+  function trim(arr) {
+    var start = 0;
+    for (; start < arr.length; start++) {
+      if (arr[start] !== '') break;
+    }
+
+    var end = arr.length - 1;
+    for (; end >= 0; end--) {
+      if (arr[end] !== '') break;
+    }
+
+    if (start > end) return [];
+    return arr.slice(start, end - start + 1);
+  }
+
+  var fromParts = trim(from.split('/'));
+  var toParts = trim(to.split('/'));
+
+  var length = Math.min(fromParts.length, toParts.length);
+  var samePartsLength = length;
+  for (var i = 0; i < length; i++) {
+    if (fromParts[i] !== toParts[i]) {
+      samePartsLength = i;
+      break;
+    }
+  }
+
+  var outputParts = [];
+  for (var i = samePartsLength; i < fromParts.length; i++) {
+    outputParts.push('..');
+  }
+
+  outputParts = outputParts.concat(toParts.slice(samePartsLength));
+
+  return outputParts.join('/');
+};
+
+exports.sep = '/';
+exports.delimiter = ':';
+
+exports.dirname = function(path) {
+  var result = splitPath(path),
+      root = result[0],
+      dir = result[1];
+
+  if (!root && !dir) {
+    // No dirname whatsoever
+    return '.';
+  }
+
+  if (dir) {
+    // It has a dirname, strip trailing slash
+    dir = dir.substr(0, dir.length - 1);
+  }
+
+  return root + dir;
+};
+
+
+exports.basename = function(path, ext) {
+  var f = splitPath(path)[2];
+  // TODO: make this comparison case-insensitive on windows?
+  if (ext && f.substr(-1 * ext.length) === ext) {
+    f = f.substr(0, f.length - ext.length);
+  }
+  return f;
+};
+
+
+exports.extname = function(path) {
+  return splitPath(path)[3];
+};
+
+function filter (xs, f) {
+    if (xs.filter) return xs.filter(f);
+    var res = [];
+    for (var i = 0; i < xs.length; i++) {
+        if (f(xs[i], i, xs)) res.push(xs[i]);
+    }
+    return res;
+}
+
+// String.prototype.substr - negative index don't work in IE8
+var substr = 'ab'.substr(-1) === 'b'
+    ? function (str, start, len) { return str.substr(start, len) }
+    : function (str, start, len) {
+        if (start < 0) start = str.length + start;
+        return str.substr(start, len);
+    }
+;
+
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../process/browser.js */ "./node_modules/process/browser.js")))
+
+/***/ }),
+
 /***/ "./node_modules/performance-now/lib/performance-now.js":
 /*!*************************************************************!*\
   !*** ./node_modules/performance-now/lib/performance-now.js ***!
@@ -58650,6 +58886,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(axios__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var react_select__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react-select */ "./node_modules/react-select/dist/react-select.esm.js");
 /* harmony import */ var react_switchery_component__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! react-switchery-component */ "./node_modules/react-switchery-component/es/index.js");
+/* harmony import */ var _helper_common_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../helper/common.js */ "./resources/js/components/helper/common.js");
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
@@ -58679,6 +58916,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 
 function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
 
 
 
@@ -58858,7 +59096,7 @@ function (_Component) {
         });
         var product_heads = res.data.product_heads.map(function (s) {
           return {
-            label: s.title,
+            label: s.title + "-" + s.brand.title,
             value: s.id,
             'price': s.purchase,
             'retail': s.sale
@@ -59162,7 +59400,9 @@ function (_Component) {
         value: '',
         onChange: '',
         options: []
-      }))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+      })), this.state.result.supplier_balance > 0 ? react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("b", {
+        class: "text-danger "
+      }, "CR: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(this.state.result.supplier_balance)) : ''), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "col-sm-4"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "form-group"
@@ -59283,7 +59523,7 @@ function (_Component) {
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "col-sm-12"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: "table-responsive " + this.state.tableFullView
+        className: "table-responsive"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("table", {
         className: "table table-hover"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("thead", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "#"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Products"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Unit Price"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Retail Price"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Quantity"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Total Price"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Actions"))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tfoot", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Unit Price"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Retail Price"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Total: ", totalQty), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Total: ", totalPrice), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tbody", null, this.state.selectedProductHeads.length ? this.state.selectedProductHeads.map(function (ph, index) {
@@ -59316,11 +59556,11 @@ function (_Component) {
         className: "col-sm-3"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h2", {
         className: "font-bold"
-      }, "Total Amount: ", totalPrice), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h3", {
+      }, "Total Amount: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(totalPrice)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h3", {
         className: "font-bold"
-      }, "Total Quantity: ", totalQty), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("br", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("br", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("hr", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
+      }, "Total Quantity: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(totalQty)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("br", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("br", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("hr", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
         className: "font-bold"
-      }, "Total Amount: ", totalPrice), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("hr", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+      }, "Total Amount: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(totalPrice)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("hr", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "form-group",
         hidden: this.state.result.payment_type_id == 1 ? false : true
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
@@ -59330,11 +59570,9 @@ function (_Component) {
         onChange: this.handlePay
       })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
         className: "font-bold"
-      }, "Current Balance: ", totalPrice - this.state.result.pay_balance), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
+      }, "Current Balance: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(totalPrice - this.state.result.pay_balance)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
         className: "font-bold "
-      }, "Remaining Balance: ", this.state.result.supplier_balance), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
-        className: "font-bold "
-      }, "Total Balance: ", totalPrice + this.state.result.supplier_balance - this.state.result.pay_balance), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, this.state.error.length ? this.state.error.map(function (e) {
+      }, "Total Balance: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(totalPrice + this.state.result.supplier_balance - this.state.result.pay_balance)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, this.state.error.length ? this.state.error.map(function (e) {
         return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h5", {
           className: "text-danger font-bold"
         }, "* ", e);
@@ -59378,6 +59616,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(axios__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var react_select__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react-select */ "./node_modules/react-select/dist/react-select.esm.js");
 /* harmony import */ var react_switchery_component__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! react-switchery-component */ "./node_modules/react-switchery-component/es/index.js");
+/* harmony import */ var _helper_common_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../helper/common.js */ "./resources/js/components/helper/common.js");
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
@@ -59413,6 +59652,7 @@ function _assertThisInitialized(self) { if (self === void 0) { throw new Referen
 
 
 
+
 var EditPurchase =
 /*#__PURE__*/
 function (_Component) {
@@ -59431,9 +59671,11 @@ function (_Component) {
       suppliers: [],
       payment_types: [],
       product_heads: [],
+      invoiceOldBalance: '',
       result: {
         purchase_id: null,
         supplier_id: null,
+        old_supplier_id: null,
         supplier_balance: 0,
         pay_balance: '',
         payment_mode: '',
@@ -59630,6 +59872,11 @@ function (_Component) {
             qty: ph.total_qty
           };
         });
+        var invoiceOldBalance = "";
+        selectedProductHeads.map(function (sp) {
+          var get_price = sp.price * sp.qty;
+          invoiceOldBalance = +invoiceOldBalance + +get_price;
+        });
         self.setState(_objectSpread({}, self.state, {
           suppliers: suppliers,
           product_heads: product_heads,
@@ -59642,6 +59889,7 @@ function (_Component) {
           result: _objectSpread({}, self.state.result, {
             purchase_id: purchase.id,
             supplier_id: purchase.supplier.id,
+            old_supplier_id: purchase.supplier.id,
             supplier_balance: parseFloat(res.data.cBalance),
             payment_type_id: purchase.payment_type.id,
             payment_mode: purchase.payment_type.id,
@@ -59651,7 +59899,8 @@ function (_Component) {
             time: purchase.time,
             remarks: purchase.remarks
           }),
-          selectedProductHeads: selectedProductHeads
+          selectedProductHeads: selectedProductHeads,
+          invoiceOldBalance: invoiceOldBalance
         }));
       });
     }
@@ -60022,11 +60271,9 @@ function (_Component) {
         className: "col-sm-3"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h2", {
         className: "font-bold"
-      }, "Total Amount: ", totalPrice), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h3", {
+      }, "Total Amount: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(totalPrice)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h3", {
         className: "font-bold"
-      }, "Total Quantity: ", totalQty), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("br", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("br", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("hr", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
-        className: "font-bold"
-      }, "Total Amount: ", totalPrice), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("hr", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+      }, "Total Quantity: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(totalQty)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("hr", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "form-group",
         hidden: this.state.result.payment_type_id == 1 ? false : true
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
@@ -60037,11 +60284,11 @@ function (_Component) {
         onChange: this.handlePay
       })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
         className: "font-bold"
-      }, "Current Balance: ", currentBalance), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
+      }, "Current Balance: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(currentBalance)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
         className: "font-bold text-danger"
-      }, "Remaining Balance: ", this.state.result.supplier_balance), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
+      }, "Remaining Balance: ", this.state.result.supplier_id == this.state.result.old_supplier_id ? Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(this.state.result.supplier_balance - this.state.invoiceOldBalance) : Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(this.state.result.supplier_balance)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
         className: "font-bold text-danger"
-      }, "Total Balance: ", this.state.result.purchase && this.state.result.purchase.supplier_id === this.state.result.supplier_id ? this.state.result.supplier_balance - (this.state.result.purchase.total_price - this.state.result.purchase.pay - currentBalance) : totalPrice + this.state.result.supplier_balance - this.state.result.pay_balance), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, this.state.error.length ? this.state.error.map(function (e) {
+      }, "Total Balance: ", this.state.result.purchase && this.state.result.purchase.supplier_id === this.state.result.supplier_id ? Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(this.state.result.supplier_balance - (this.state.result.purchase.total_price - this.state.result.purchase.pay - currentBalance)) : Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(totalPrice + this.state.result.supplier_balance - this.state.result.pay_balance)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, this.state.error.length ? this.state.error.map(function (e) {
         return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h5", {
           className: "text-danger font-bold"
         }, "* ", e);
@@ -60085,6 +60332,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(axios__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var react_select__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react-select */ "./node_modules/react-select/dist/react-select.esm.js");
 /* harmony import */ var react_switchery_component__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! react-switchery-component */ "./node_modules/react-switchery-component/es/index.js");
+/* harmony import */ var _helper_common_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../helper/common.js */ "./resources/js/components/helper/common.js");
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
@@ -60120,6 +60368,7 @@ function _assertThisInitialized(self) { if (self === void 0) { throw new Referen
 
 
 
+
 var EditReturnPurchase =
 /*#__PURE__*/
 function (_Component) {
@@ -60134,6 +60383,7 @@ function (_Component) {
     _this.state = {
       chequeDetails: false,
       selectedSupplier: null,
+      invoiceOldBalance: '',
       selectedProductHeads: [],
       suppliers: [],
       payment_types: [],
@@ -60141,6 +60391,7 @@ function (_Component) {
       result: {
         purchase_id: null,
         supplier_id: null,
+        old_supplier_id: null,
         supplier_balance: 0,
         pay_balance: '',
         payment_type_id: 1,
@@ -60286,6 +60537,11 @@ function (_Component) {
             qty: ph.total_qty
           };
         });
+        var invoiceOldBalance = "";
+        selectedProductHeads.map(function (sp) {
+          var get_price = sp.price * sp.qty;
+          invoiceOldBalance = +invoiceOldBalance + +get_price;
+        });
         self.setState(_objectSpread({}, self.state, {
           suppliers: suppliers,
           product_heads: product_heads,
@@ -60298,6 +60554,7 @@ function (_Component) {
           result: _objectSpread({}, self.state.result, {
             purchase_id: purchase.id,
             supplier_id: purchase.supplier.id,
+            old_supplier_id: purchase.supplier.id,
             supplier_balance: parseFloat(res.data.cBalance),
             payment_type_id: purchase.payment_type.id,
             pay_balance: parseFloat(purchase.pay),
@@ -60306,7 +60563,8 @@ function (_Component) {
             remarks: purchase.remarks,
             purchase: purchase
           }),
-          selectedProductHeads: selectedProductHeads
+          selectedProductHeads: selectedProductHeads,
+          invoiceOldBalance: invoiceOldBalance
         }));
       });
     }
@@ -60664,12 +60922,10 @@ function (_Component) {
       }) : react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, "No Product Selected")))))))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "col-sm-3"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h2", {
-        className: "font-bold"
-      }, "Total Amount: ", totalPrice), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h3", {
-        className: "font-bold"
-      }, "Total Quantity: ", totalQty), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("br", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("br", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("hr", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
-        className: "font-bold"
-      }, "Total Amount: ", totalPrice), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("hr", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        className: "font-bold text-success"
+      }, "Total Amount: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(totalPrice)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h3", {
+        className: "font-bold text-success"
+      }, "Total Quantity: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(totalQty)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("hr", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "form-group",
         hidden: true
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
@@ -60680,10 +60936,10 @@ function (_Component) {
         onChange: this.handlePay
       })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
         className: "font-bold"
-      }, "Current Balance: ", currentBalance), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
-        className: "font-bold"
-      }, "Remaining Balance: ", this.state.result.supplier_balance), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
-        className: "font-bold"
+      }, "Current Balance: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(currentBalance)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
+        className: "font-bold text-danger"
+      }, "Remaining Balance: ", this.state.result.supplier_id == this.state.result.old_supplier_id ? Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(this.state.result.supplier_balance + this.state.invoiceOldBalance) : Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(this.state.result.supplier_balance)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
+        className: "font-bold text-danger"
       }, "Total Balance: ", this.state.result.purchase && this.state.result.purchase.supplier_id === this.state.result.supplier_id ? this.state.result.supplier_balance + (this.state.result.purchase.total_price - this.state.result.purchase.pay - currentBalance) : this.state.result.supplier_balance - totalPrice - this.state.result.pay_balance), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, this.state.error.length ? this.state.error.map(function (e) {
         return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h5", {
           className: "text-danger font-bold"
@@ -60728,6 +60984,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(axios__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var react_select__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react-select */ "./node_modules/react-select/dist/react-select.esm.js");
 /* harmony import */ var react_switchery_component__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! react-switchery-component */ "./node_modules/react-switchery-component/es/index.js");
+/* harmony import */ var _helper_common_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../helper/common.js */ "./resources/js/components/helper/common.js");
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
@@ -60757,6 +61014,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 
 function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
 
 
 
@@ -61364,12 +61622,10 @@ function (_Component) {
       }) : react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, "No Product Selected")))))))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "col-sm-3"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h2", {
-        className: "font-bold"
-      }, "Total Amount: ", totalPrice), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h3", {
-        className: "font-bold"
-      }, "Total Quantity: ", totalQty), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("br", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("br", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("hr", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
-        className: "font-bold"
-      }, "Total Amount: ", totalPrice), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("hr", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        className: "font-bold text-success"
+      }, "Total Amount: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(totalPrice)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h3", {
+        className: "font-bold text-success"
+      }, "Total Quantity: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(totalQty)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("hr", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "form-group",
         hidden: true
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
@@ -61380,11 +61636,11 @@ function (_Component) {
         onChange: this.handlePay
       })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
         className: "font-bold"
-      }, "Current Balance: ", totalPrice - this.state.result.pay_balance), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
-        className: "font-bold "
-      }, "Remaining Balance: ", this.state.result.supplier_balance), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
-        className: "font-bold "
-      }, "Total Balance: ", this.state.result.supplier_balance - (totalPrice - this.state.result.pay_balance)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, this.state.error.length ? this.state.error.map(function (e) {
+      }, "Current Balance: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(totalPrice - this.state.result.pay_balance)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
+        className: "font-bold text-danger"
+      }, "Remaining Balance: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(this.state.result.supplier_balance)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
+        className: "font-bold text-danger"
+      }, "Total Balance: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(this.state.result.supplier_balance - (totalPrice - this.state.result.pay_balance))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, this.state.error.length ? this.state.error.map(function (e) {
         return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h5", {
           className: "text-danger font-bold"
         }, "* ", e);
@@ -61434,6 +61690,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var sweetalert_react__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(sweetalert_react__WEBPACK_IMPORTED_MODULE_5__);
 /* harmony import */ var sweetalert_dist_sweetalert_css__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! sweetalert/dist/sweetalert.css */ "./node_modules/sweetalert/dist/sweetalert.css");
 /* harmony import */ var sweetalert_dist_sweetalert_css__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(sweetalert_dist_sweetalert_css__WEBPACK_IMPORTED_MODULE_6__);
+/* harmony import */ var _helper_common_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../helper/common.js */ "./resources/js/components/helper/common.js");
+/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! path */ "./node_modules/path-browserify/index.js");
+/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_8__);
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
@@ -61472,6 +61731,8 @@ function _assertThisInitialized(self) { if (self === void 0) { throw new Referen
 
 
 
+
+
 var CreateSale =
 /*#__PURE__*/
 function (_Component) {
@@ -61491,8 +61752,12 @@ function (_Component) {
       customers: [],
       payment_types: [],
       product_heads: [],
+      allTaxes: [],
+      selectedTaxes: [],
+      isChecked: [],
+      invoiceId: '',
       result: {
-        customer_id: 1,
+        customer_id: 1000,
         customer_balance: 0,
         pay_balance: 0,
         payment_type_id: 1,
@@ -61505,6 +61770,7 @@ function (_Component) {
         time: '',
         currentDateAndTime: true,
         discount: 0,
+        percentage_discount: 0,
         pf: true
       },
       error: [],
@@ -61525,10 +61791,14 @@ function (_Component) {
     _this.handleSubmit = _this.handleSubmit.bind(_assertThisInitialized(_assertThisInitialized(_this)));
     _this.handlePay = _this.handlePay.bind(_assertThisInitialized(_assertThisInitialized(_this)));
     _this.handleDiscount = _this.handleDiscount.bind(_assertThisInitialized(_assertThisInitialized(_this)));
+    _this.handlePercentageDiscount = _this.handlePercentageDiscount.bind(_assertThisInitialized(_assertThisInitialized(_this)));
     _this.handleChangePrint = _this.handleChangePrint.bind(_assertThisInitialized(_assertThisInitialized(_this)));
     _this.handleClick = _this.handleClick.bind(_assertThisInitialized(_assertThisInitialized(_this)));
     _this.handleShowDateTime = _this.handleShowDateTime.bind(_assertThisInitialized(_assertThisInitialized(_this)));
+    _this.handleChangeTax = _this.handleChangeTax.bind(_assertThisInitialized(_assertThisInitialized(_this)));
     _this.handleChangeFullView = _this.handleChangeFullView.bind(_assertThisInitialized(_assertThisInitialized(_this)));
+    _this.handleChangeNetDiscount = _this.handleChangeNetDiscount.bind(_assertThisInitialized(_assertThisInitialized(_this)));
+    _this.handleChangeNetDiscountPercentage = _this.handleChangeNetDiscountPercentage.bind(_assertThisInitialized(_assertThisInitialized(_this)));
     return _this;
   }
 
@@ -61538,14 +61808,43 @@ function (_Component) {
       var _this2 = this;
 
       e.preventDefault();
-      var totalPrice = 0;
       var totalQty = 0;
+      var totalPrice = 0;
       var netTotal = 0;
-      this.state.selectedProductHeads.map(function (sp) {
+      var extTax = 0;
+      var addExtTax = 0;
+      var addTax = 0;
+      var tax = 0;
+      var tax_ids = [];
+      this.state.selectedProductHeads.length ? this.state.selectedProductHeads.map(function (sp) {
         totalQty += sp.qty;
-        totalPrice += sp.price * sp.qty;
-        netTotal = totalPrice - _this2.state.result.discount;
-      });
+
+        if (_this2.state.selectedTaxes.length) {
+          _this2.state.selectedTaxes.sort(function (a, b) {
+            return a.order - b.order;
+          }).map(function (tx) {
+            tax = parseFloat(sp.qty * sp.price / 100 * tx.value);
+
+            if (tx.order == 1) {
+              extTax = parseFloat(sp.qty * sp.price) + parseFloat(sp.qty * sp.price / 100 * tx.value);
+              addTax = parseFloat(sp.qty * sp.price / 100 * tx.value);
+            }
+
+            if (tx.order == 2) {
+              tax = extTax / 100 * tx.value;
+              addExtTax = extTax / 100 * tx.value;
+            }
+
+            tax_ids.push(tx.id);
+          });
+
+          totalPrice += sp.price * sp.qty + parseFloat(addTax) + parseFloat(addExtTax);
+        } else {
+          totalPrice += sp.price * sp.qty - sp.price * sp.qty / 100 * sp.netDiscPr - sp.netDisc;
+        }
+
+        netTotal = totalPrice - _this2.state.result.discount - totalPrice / 100 * _this2.state.result.percentage_discount;
+      }) : '';
       var balance = netTotal + this.state.result.customer_balance - this.state.result.pay_balance;
       var pay_balance = this.state.result.pay_balance;
 
@@ -61567,8 +61866,10 @@ function (_Component) {
         cheque_amount: this.state.result.cheque_amount,
         cheque_date: this.state.result.cheque_date,
         discount: this.state.result.discount,
+        pr_disc: this.state.result.percentage_discount,
         pf: this.state.result.pf,
         remarks: this.state.result.remarks,
+        tax_ids: tax_ids,
         pay_balance: pay_balance,
         totalQty: totalQty,
         totalPrice: totalPrice,
@@ -61639,6 +61940,14 @@ function (_Component) {
       var url = location.origin;
       var self = this;
       axios__WEBPACK_IMPORTED_MODULE_1___default.a.get(url + '/sales-get-customers').then(function (res) {
+        var allTaxes = res.data.all_taxes.map(function (s) {
+          return {
+            label: s.title,
+            id: s.id,
+            value: parseFloat(s.value),
+            order: s.order
+          };
+        });
         var customers = res.data.customers.map(function (s) {
           return {
             label: s.name,
@@ -61647,11 +61956,11 @@ function (_Component) {
           };
         });
         var selectedCustomer = res.data.customers.find(function (s) {
-          return s.id == 1;
+          return s.id == 1000;
         });
         var product_heads = res.data.product_heads.map(function (s) {
           return {
-            label: s.title,
+            label: s.title + "-" + s.brand.title,
             value: s.id,
             price: parseFloat(s.stock.price),
             availableQty: parseFloat(s.stock.total_qty) - parseFloat(s.stock.out_qty)
@@ -61659,6 +61968,7 @@ function (_Component) {
         });
         self.setState(_objectSpread({}, self.state, {
           customers: customers,
+          allTaxes: allTaxes,
           selectedCustomer: {
             label: selectedCustomer.name,
             value: selectedCustomer.id,
@@ -61678,6 +61988,54 @@ function (_Component) {
     key: "componentWillMount",
     value: function componentWillMount() {
       document.addEventListener('mousedown', this.handleClick, false);
+    }
+  }, {
+    key: "handleChangeNetDiscount",
+    value: function handleChangeNetDiscount(e) {
+      var netDisc = parseFloat(e.target.value);
+      var selectedProductHeads;
+
+      if (netDisc > 0) {
+        selectedProductHeads = this.state.selectedProductHeads.map(function (sp) {
+          return sp.id == e.target.id ? _objectSpread({}, sp, {
+            netDisc: netDisc
+          }) : sp;
+        });
+      } else {
+        selectedProductHeads = this.state.selectedProductHeads.map(function (sp) {
+          return sp.id == e.target.id ? _objectSpread({}, sp, {
+            netDisc: ''
+          }) : sp;
+        });
+      }
+
+      this.setState(_objectSpread({}, this.state, {
+        selectedProductHeads: selectedProductHeads
+      }));
+    }
+  }, {
+    key: "handleChangeNetDiscountPercentage",
+    value: function handleChangeNetDiscountPercentage(e) {
+      var netDiscPr = parseFloat(e.target.value);
+      var selectedProductHeads;
+
+      if (netDiscPr > 0) {
+        selectedProductHeads = this.state.selectedProductHeads.map(function (sp) {
+          return sp.id == e.target.id ? _objectSpread({}, sp, {
+            netDiscPr: netDiscPr
+          }) : sp;
+        });
+      } else {
+        selectedProductHeads = this.state.selectedProductHeads.map(function (sp) {
+          return sp.id == e.target.id ? _objectSpread({}, sp, {
+            netDiscPr: ''
+          }) : sp;
+        });
+      }
+
+      this.setState(_objectSpread({}, this.state, {
+        selectedProductHeads: selectedProductHeads
+      }));
     }
   }, {
     key: "handleChange",
@@ -61748,7 +62106,9 @@ function (_Component) {
             id: e.value,
             title: e.label,
             price: parseFloat(e.price),
-            qty: 1
+            qty: 1,
+            netDisc: '',
+            netDiscPr: ''
           };
           this.setState(_objectSpread({}, this.state, {
             selectedProductHeads: [].concat(_toConsumableArray(this.state.selectedProductHeads), [productHead])
@@ -61862,6 +62222,25 @@ function (_Component) {
         this.setState({
           result: _objectSpread({}, this.state.result, {
             discount: 0
+          })
+        });
+      }
+    }
+  }, {
+    key: "handlePercentageDiscount",
+    value: function handlePercentageDiscount(e) {
+      var percentage_discount = parseFloat(e.target.value);
+
+      if (percentage_discount) {
+        this.setState({
+          result: _objectSpread({}, this.state.result, {
+            percentage_discount: percentage_discount
+          })
+        });
+      } else {
+        this.setState({
+          result: _objectSpread({}, this.state.result, {
+            percentage_discount: 0
           })
         });
       }
@@ -61988,28 +62367,77 @@ function (_Component) {
       });
     }
   }, {
+    key: "handleChangeTax",
+    value: function handleChangeTax(e) {
+      var _this4 = this;
+
+      if (e.target.checked) {
+        this.state.allTaxes.map(function (tx) {
+          if (tx.id == e.target.id) {
+            var selectedTax = {
+              label: tx.label,
+              id: tx.id,
+              value: parseFloat(tx.value),
+              order: tx.order
+            };
+
+            _this4.setState(_objectSpread({}, _this4.state, {
+              selectedTaxes: [].concat(_toConsumableArray(_this4.state.selectedTaxes), [selectedTax])
+            }));
+          }
+        });
+      } else {
+        var selectedTaxes = this.state.selectedTaxes.filter(function (tx) {
+          return tx.id != e.target.id;
+        });
+        this.setState(_objectSpread({}, this.state, {
+          selectedTaxes: selectedTaxes
+        }));
+      }
+    }
+  }, {
     key: "render",
     value: function render() {
-      var _this4 = this;
+      var _this5 = this;
 
       var totalQty = 0;
       var totalPrice = 0;
       var netTotal = 0;
+      var extTax = 0;
+      var addExtTax = 0;
+      var addTax = 0;
+      var tax = 0;
       this.state.selectedProductHeads.length ? this.state.selectedProductHeads.map(function (sp) {
         totalQty += sp.qty;
-        totalPrice += sp.price * sp.qty;
-        netTotal = totalPrice - _this4.state.result.discount;
+
+        if (_this5.state.selectedTaxes.length) {
+          _this5.state.selectedTaxes.sort(function (a, b) {
+            return a.order - b.order;
+          }).map(function (tx) {
+            tax = parseFloat(sp.qty * sp.price / 100 * tx.value);
+
+            if (tx.order == 1) {
+              extTax = parseFloat(sp.qty * sp.price) + parseFloat(sp.qty * sp.price / 100 * tx.value);
+              addTax = parseFloat(sp.qty * sp.price / 100 * tx.value);
+            }
+
+            if (tx.order == 2) {
+              tax = extTax / 100 * tx.value;
+              addExtTax = extTax / 100 * tx.value;
+            }
+          });
+
+          totalPrice += sp.price * sp.qty + parseFloat(addTax) + parseFloat(addExtTax);
+        } else {
+          totalPrice += sp.price * sp.qty - sp.price * sp.qty / 100 * sp.netDiscPr - sp.netDisc;
+        }
+
+        netTotal = totalPrice - _this5.state.result.discount - totalPrice / 100 * _this5.state.result.percentage_discount;
       }) : '';
       return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "row"
-      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(sweetalert_react__WEBPACK_IMPORTED_MODULE_5___default.a, {
-        show: this.state.show,
-        title: "Out of stock",
-        onConfirm: function onConfirm() {
-          return _this4.setState({
-            show: false
-          });
-        }
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("header", {
+        className: "col-md-12"
       }), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "col-sm-12"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
@@ -62019,11 +62447,11 @@ function (_Component) {
       }, "Sale Invoice"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "row"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: "col-sm-9"
+        className: "col-sm-12"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "row"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: "col-sm-12"
+        className: "col-sm-4"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "checkbox checkbox-primary checkbox-circle"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
@@ -62033,7 +62461,21 @@ function (_Component) {
         type: "checkbox"
       }), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("label", {
         htmlFor: "checkbox-9"
-      }, " Current Date "))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+      }, " Current Date "))), this.state.allTaxes.map(function (tx) {
+        return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+          className: "col-sm-4"
+        }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+          className: "checkbox checkbox-primary checkbox-circle"
+        }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
+          key: tx.id,
+          value: tx.value,
+          onChange: _this5.handleChangeTax,
+          id: tx.id,
+          type: "checkbox"
+        }), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("label", {
+          htmlFor: _this5.id
+        }, tx.label)));
+      }), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "col-sm-6",
         hidden: this.state.result.currentDateAndTime
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
@@ -62081,7 +62523,11 @@ function (_Component) {
         value: '',
         onChange: '',
         options: []
-      }))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+      })), this.state.result.customer_balance > 0 ? react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("b", {
+        class: "text-danger "
+      }, "CR: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_7__["addCommas"])(this.state.result.customer_balance)) : '', this.state.result.customer_balance < 0 ? react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("b", {
+        class: "text-success "
+      }, "DR: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_7__["addCommas"])(this.state.result.customer_balance)) : ''), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "col-sm-4"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "form-group"
@@ -62191,55 +62637,101 @@ function (_Component) {
         onKeyUp: this.handleChange,
         id: "remarks",
         placeholder: "Remarks"
-      })))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("p", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("label", {
-        htmlFor: "size-example"
-      }, "Full View"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(react_switchery_component__WEBPACK_IMPORTED_MODULE_3__["default"], {
-        id: "size-example",
-        size: "small",
-        checked: this.state.isFullViewChecked,
-        onChange: function onChange(e) {
-          return _this4.handleChangeFullView(e);
-        }
-      })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("hr", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+      })))))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("hr", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "row"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "col-sm-12"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: "table-responsive " + this.state.tableFullView
+        className: "table-responsive "
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("table", {
         className: "table table-hover"
-      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("thead", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "#"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Products"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Unit Price"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Quantity"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Total Price"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Actions"))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tfoot", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Unit Price"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Total: ", totalQty), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Total: ", totalPrice), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tbody", null, this.state.selectedProductHeads.length > 0 ? this.state.selectedProductHeads.map(function (ph, index) {
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("thead", null, this.state.selectedTaxes.length == 0 ? react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "#"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Products"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Unit Price"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Quantity"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Disc %"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Amount"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Disc"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Total Price"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Actions")) : react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "#"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Products"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Unit Price"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Quantity"), this.state.selectedTaxes.length > 0 ? this.state.selectedTaxes.sort(function (a, b) {
+        return a.order - b.order;
+      }).map(function (tx) {
+        return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, tx.label + '(' + tx.value + '%)');
+      }) : '', react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Total Price"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Actions"))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tfoot", null, this.state.selectedTaxes.length == 0 ? react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Unit Price"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Total: ", totalQty), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Total: ", totalPrice.toFixed(2)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null)) : react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Unit Price"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Total: ", totalQty), this.state.selectedTaxes.length > 0 ? this.state.selectedTaxes.map(function (tx) {
+        return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null);
+      }) : '', react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Total: ", totalPrice.toFixed(2)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tbody", null, this.state.selectedTaxes.length > 0 ? this.state.selectedProductHeads.length > 0 ? this.state.selectedProductHeads.map(function (ph, index) {
         return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", {
           key: ph.id
         }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, index + 1), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, ph.title), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
           type: "number",
           value: ph.price,
           id: ph.id,
-          onChange: _this4.handleChangeProductPrice
+          onChange: _this5.handleChangeProductPrice
         })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
           type: "number",
           value: ph.qty,
           id: ph.id,
-          onChange: _this4.handleChangeProductQty
-        })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, ph.qty * ph.price), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
+          onChange: _this5.handleChangeProductQty
+        })), _this5.state.selectedTaxes.length > 0 ? _this5.state.selectedTaxes.sort(function (a, b) {
+          return a.order - b.order;
+        }).map(function (tx) {
+          tax = parseFloat(ph.qty * ph.price / 100 * tx.value);
+
+          if (tx.order == 1) {
+            extTax = parseFloat(ph.qty * ph.price) + parseFloat(ph.qty * ph.price / 100 * tx.value);
+            addTax = parseFloat(ph.qty * ph.price / 100 * tx.value);
+          }
+
+          if (tx.order == 2) {
+            tax = extTax / 100 * tx.value;
+            addExtTax = extTax / 100 * tx.value;
+          }
+
+          return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, tax.toFixed(2));
+        }) : '', react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, (ph.qty * ph.price + parseFloat(addTax) + parseFloat(addExtTax)).toFixed(2)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
           className: "btn btn-danger ",
           onClick: function onClick() {
-            return _this4.handleChangeProductDelete(ph.id);
+            return _this5.handleChangeProductDelete(ph.id);
           }
         }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
           className: "glyphicon glyphicon-remove"
         }))));
-      }) : react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, "No Product Selected")))))))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: "col-sm-3"
+      }) : react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, "No Product Selected")) : this.state.selectedProductHeads.length > 0 ? this.state.selectedProductHeads.map(function (ph, index) {
+        return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", {
+          key: ph.id
+        }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, index + 1), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, ph.title), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
+          type: "number",
+          value: ph.price,
+          id: ph.id,
+          onChange: _this5.handleChangeProductPrice
+        })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
+          type: "number",
+          value: ph.qty,
+          id: ph.id,
+          onChange: _this5.handleChangeProductQty
+        })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
+          type: "number",
+          value: ph.netDiscPr,
+          id: ph.id,
+          onChange: _this5.handleChangeNetDiscountPercentage
+        })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, (ph.qty * ph.price / 100 * ph.netDiscPr).toFixed(2)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
+          type: "number",
+          value: ph.netDisc,
+          id: ph.id,
+          onChange: _this5.handleChangeNetDiscount
+        })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, (ph.qty * ph.price - ph.qty * ph.price / 100 * ph.netDiscPr - ph.netDisc).toFixed(2)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
+          className: "btn btn-danger ",
+          onClick: function onClick() {
+            return _this5.handleChangeProductDelete(ph.id);
+          }
+        }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
+          className: "glyphicon glyphicon-remove"
+        }))));
+      }) : react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, "No Product Selected")))))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        className: "col-sm-3 pull-right"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h3", {
         className: "font-bold text-primary"
-      }, "TOTAL AMOUNT: ", totalPrice), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
-        className: "font-bold"
-      }, "Total Quantity: ", totalQty), this.state.result.discount > 0 ? react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
-        className: "font-bold"
-      }, "Discount: ", this.state.result.discount, " ") : '', react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
-        className: "font-bold"
-      }, "Net Total: ", netTotal), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+      }, "TOTAL AMOUNT: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_7__["addCommas"])(totalPrice.toFixed(2))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
+        className: "font-bold text-warning"
+      }, "Total Quantity: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_7__["addCommas"])(totalQty)), this.state.result.discount > 0 ? react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
+        className: "font-bold text-success"
+      }, "Discount: ", this.state.result.discount, " ") : '', this.state.result.percentage_discount > 0 ? react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
+        className: "font-bold text-default"
+      }, "Discount %: ", this.state.result.percentage_discount, " ") : '', react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
+        className: "font-bold text-danger"
+      }, "Net Total: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_7__["addCommas"])(netTotal.toFixed(2))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "form-group",
         hidden: this.state.result.payment_type_id == 2 ? false : true
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
@@ -62255,15 +62747,23 @@ function (_Component) {
         className: "form-control",
         placeholder: "Discount",
         onChange: this.handleDiscount
+      })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        className: "form-group"
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
+        type: "number",
+        disabled: this.state.selectedProductHeads.length ? false : true,
+        className: "form-control",
+        placeholder: "Discount %",
+        onChange: this.handlePercentageDiscount
       })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
         hidden: this.state.result.payment_type_id == 1 ? true : false,
         className: "font-bold"
-      }, "Current Balance: ", totalPrice - this.state.result.pay_balance), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
-        className: "font-bold"
-      }, "Remaining Balance: ", this.state.result.customer_balance), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
+      }, "Current Balance: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_7__["addCommas"])((netTotal - this.state.result.pay_balance).toFixed(2))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
+        className: "font-bold text-danger"
+      }, "Remaining Balance: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_7__["addCommas"])(this.state.result.customer_balance)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
         hidden: this.state.result.payment_type_id == 1 ? true : false,
-        className: "font-bold"
-      }, "Total Balance: ", (netTotal + this.state.result.customer_balance - this.state.result.pay_balance).toFixed(2))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, this.state.error.length ? this.state.error.map(function (e) {
+        className: "font-bold text-success"
+      }, "Total Balance: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_7__["addCommas"])(Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_7__["round"])(netTotal + this.state.result.customer_balance - this.state.result.pay_balance)))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, this.state.error.length ? this.state.error.map(function (e) {
         return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h5", {
           className: "text-danger font-bold"
         }, "* ", e);
@@ -62312,7 +62812,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react_switchery_component_react_switchery_component_css__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(react_switchery_component_react_switchery_component_css__WEBPACK_IMPORTED_MODULE_4__);
 /* harmony import */ var sweetalert_dist_sweetalert_css__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! sweetalert/dist/sweetalert.css */ "./node_modules/sweetalert/dist/sweetalert.css");
 /* harmony import */ var sweetalert_dist_sweetalert_css__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(sweetalert_dist_sweetalert_css__WEBPACK_IMPORTED_MODULE_5__);
-/* harmony import */ var react_switchery_component__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! react-switchery-component */ "./node_modules/react-switchery-component/es/index.js");
+/* harmony import */ var _helper_common_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../helper/common.js */ "./resources/js/components/helper/common.js");
+/* harmony import */ var react_switchery_component__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! react-switchery-component */ "./node_modules/react-switchery-component/es/index.js");
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
@@ -62342,6 +62843,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 
 function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
 
 
 
@@ -62381,10 +62883,12 @@ function (_Component) {
         cheque_amount: null,
         cheque_date: null,
         sale: [],
+        old_discount: 0,
         pf: true,
         date: '',
         remarks: '',
         time: '',
+        discount: 0,
         balance_difference: '',
         old_total_price: ''
       },
@@ -62408,6 +62912,7 @@ function (_Component) {
     _this.handleChangeFullView = _this.handleChangeFullView.bind(_assertThisInitialized(_assertThisInitialized(_this)));
     _this.handleChangePrint = _this.handleChangePrint.bind(_assertThisInitialized(_assertThisInitialized(_this)));
     _this.handleShowDateTime = _this.handleShowDateTime.bind(_assertThisInitialized(_assertThisInitialized(_this)));
+    _this.handleDiscount = _this.handleDiscount.bind(_assertThisInitialized(_assertThisInitialized(_this)));
     return _this;
   }
 
@@ -62430,7 +62935,8 @@ function (_Component) {
         totalQty += sp.qty;
         totalPrice += sp.price * sp.qty;
       });
-      var currentBalance = totalPrice - this.state.result.pay_balance;
+      totalPrice -= this.state.result.discount;
+      var currentBalance = totalPrice - this.state.result.pay_balance - this.state.result.old_total_price - this.state.result.old_discount;
       var balance = 9;
 
       if (this.state.result.sale.customer_id === this.state.result.customer_id) {
@@ -62454,6 +62960,7 @@ function (_Component) {
         remarks: this.state.result.remarks,
         balance_difference: parseFloat(totalPrice) - parseFloat(this.state.result.old_total_price),
         totalQty: totalQty,
+        discount: this.state.result.discount,
         totalPrice: totalPrice,
         balance: balance
       };
@@ -62493,6 +63000,7 @@ function (_Component) {
       var self = this;
       axios__WEBPACK_IMPORTED_MODULE_1___default.a.get(url + '/sales-get-customers/' + id + '/edit').then(function (res) {
         var sale = res.data.sale;
+        var old_discount = sale.discount;
         var customers = res.data.customers.map(function (s) {
           return {
             label: s.name,
@@ -62531,10 +63039,12 @@ function (_Component) {
             payment_type_id: sale.payment_type.id,
             pay_balance: parseFloat(sale.pay),
             sale: sale,
+            discount: parseFloat(sale.discount),
             date: sale.date,
             time: sale.time,
             old_total_price: sale.total_price,
-            remarks: sale.remarks
+            remarks: sale.remarks,
+            old_discount: old_discount
           }),
           selectedProductHeads: selectedProductHeads,
           product_heads: product_heads
@@ -62567,6 +63077,25 @@ function (_Component) {
             result: _objectSpread({}, this.state.result, _defineProperty({}, e.target.id, e.target.value))
           }));
         }
+      }
+    }
+  }, {
+    key: "handleDiscount",
+    value: function handleDiscount(e) {
+      var discount = parseFloat(e.target.value);
+
+      if (discount) {
+        this.setState({
+          result: _objectSpread({}, this.state.result, {
+            discount: discount
+          })
+        });
+      } else {
+        this.setState({
+          result: _objectSpread({}, this.state.result, {
+            discount: 0
+          })
+        });
       }
     }
   }, {
@@ -62812,7 +63341,7 @@ function (_Component) {
         totalQty += sp.qty;
         totalPrice += sp.price * sp.qty;
       }) : '';
-      var currentBalance = totalPrice - this.state.result.pay_balance;
+      var currentBalance = totalPrice - this.state.result.pay_balance - this.state.result.discount;
       return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "row"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(sweetalert_react__WEBPACK_IMPORTED_MODULE_3___default.a, {
@@ -62955,7 +63484,7 @@ function (_Component) {
         placeholder: "Remarks"
       })))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("br", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("p", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("label", {
         htmlFor: "size-example"
-      }, "Full View"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(react_switchery_component__WEBPACK_IMPORTED_MODULE_6__["default"], {
+      }, "Full View"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(react_switchery_component__WEBPACK_IMPORTED_MODULE_7__["default"], {
         id: "size-example",
         size: "small",
         checked: this.state.isFullViewChecked,
@@ -62999,13 +63528,20 @@ function (_Component) {
         className: "font-bold"
       }, "Total Quantity: ", totalQty), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("br", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("br", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("hr", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
         className: "font-bold"
-      }, "Total Amount: ", totalPrice), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("hr", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
+      }, "Total Amount: ", totalPrice), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        className: "form-group"
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
+        type: "number",
+        disabled: this.state.selectedProductHeads.length ? false : true,
+        className: "form-control",
+        placeholder: "Discount",
+        value: this.state.result.discount,
+        onChange: this.handleDiscount
+      })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("hr", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
         className: "font-bold"
-      }, "Current Balance: ", totalPrice - this.state.result.pay_balance), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
+      }, "Current Balance: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_6__["addCommas"])(totalPrice - this.state.result.discount)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
         className: "font-bold "
-      }, "Remaining Balance: ", this.state.result.customer_balance), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
-        className: "font-bold "
-      }, "Total Balance: ", this.state.result.sale && this.state.result.sale.customer_id === this.state.result.customer_id ? this.state.result.customer_balance + (this.state.result.sale.total_price - this.state.result.sale.pay - currentBalance) : this.state.result.customer_balance - totalPrice), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, this.state.error.length ? this.state.error.map(function (e) {
+      }, "Remaining Balance:", this.state.result.discount == this.state.result.old_discount ? Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_6__["addCommas"])(this.state.result.customer_balance) : Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_6__["addCommas"])(this.state.result.customer_balance - this.state.result.old_discount + this.state.result.discount)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, this.state.error.length ? this.state.error.map(function (e) {
         return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h5", {
           className: "text-danger font-bold"
         }, "* ", e);
@@ -63054,7 +63590,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react_switchery_component_react_switchery_component_css__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(react_switchery_component_react_switchery_component_css__WEBPACK_IMPORTED_MODULE_4__);
 /* harmony import */ var sweetalert_dist_sweetalert_css__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! sweetalert/dist/sweetalert.css */ "./node_modules/sweetalert/dist/sweetalert.css");
 /* harmony import */ var sweetalert_dist_sweetalert_css__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(sweetalert_dist_sweetalert_css__WEBPACK_IMPORTED_MODULE_5__);
-/* harmony import */ var react_switchery_component__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! react-switchery-component */ "./node_modules/react-switchery-component/es/index.js");
+/* harmony import */ var _helper_common_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../helper/common.js */ "./resources/js/components/helper/common.js");
+/* harmony import */ var react_switchery_component__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! react-switchery-component */ "./node_modules/react-switchery-component/es/index.js");
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
@@ -63093,12 +63630,15 @@ function _assertThisInitialized(self) { if (self === void 0) { throw new Referen
 
 
 
+
 var EditSale =
 /*#__PURE__*/
 function (_Component) {
   _inherits(EditSale, _Component);
 
   function EditSale(props) {
+    var _result;
+
     var _this;
 
     _classCallCheck(this, EditSale);
@@ -63112,7 +63652,10 @@ function (_Component) {
       customers: [],
       payment_types: [],
       product_heads: [],
-      result: {
+      allTaxes: [],
+      selectedTaxes: [],
+      isTaxApply: '',
+      result: (_result = {
         sale_id: null,
         customer_id: null,
         customer_balance: 0,
@@ -63125,14 +63668,12 @@ function (_Component) {
         cheque_date: null,
         sale: [],
         discount: null,
+        invoice_id: null,
         pf: true,
         date: '',
         time: '',
-        remarks: '',
-        balance_difference: '',
-        old_net_total: '',
-        old_pay_balance: ''
-      },
+        remarks: ''
+      }, _defineProperty(_result, "discount", 0), _defineProperty(_result, "percentage_discount", 0), _defineProperty(_result, "balance_difference", ''), _defineProperty(_result, "old_net_total", ''), _defineProperty(_result, "old_pay_balance", ''), _result),
       error: [],
       errorVisible: false,
       productsDropdown: true,
@@ -63149,11 +63690,15 @@ function (_Component) {
     _this.handleChangeSearchKey = _this.handleChangeSearchKey.bind(_assertThisInitialized(_assertThisInitialized(_this)));
     _this.handleSubmit = _this.handleSubmit.bind(_assertThisInitialized(_assertThisInitialized(_this)));
     _this.handleDiscount = _this.handleDiscount.bind(_assertThisInitialized(_assertThisInitialized(_this)));
+    _this.handlePercentageDiscount = _this.handlePercentageDiscount.bind(_assertThisInitialized(_assertThisInitialized(_this)));
     _this.handleChangePrint = _this.handleChangePrint.bind(_assertThisInitialized(_assertThisInitialized(_this)));
     _this.handlePay = _this.handlePay.bind(_assertThisInitialized(_assertThisInitialized(_this)));
+    _this.handleChangeTax = _this.handleChangeTax.bind(_assertThisInitialized(_assertThisInitialized(_this)));
     _this.handleClick = _this.handleClick.bind(_assertThisInitialized(_assertThisInitialized(_this)));
     _this.handleShowDateTime = _this.handleShowDateTime.bind(_assertThisInitialized(_assertThisInitialized(_this)));
     _this.handleChangeFullView = _this.handleChangeFullView.bind(_assertThisInitialized(_assertThisInitialized(_this)));
+    _this.handleChangeNetDiscount = _this.handleChangeNetDiscount.bind(_assertThisInitialized(_assertThisInitialized(_this)));
+    _this.handleChangeNetDiscountPercentage = _this.handleChangeNetDiscountPercentage.bind(_assertThisInitialized(_assertThisInitialized(_this)));
     return _this;
   }
 
@@ -63169,17 +63714,47 @@ function (_Component) {
   }, {
     key: "handleSubmit",
     value: function handleSubmit(e) {
-      var _this2 = this;
+      var _this2 = this,
+          _data;
 
       e.preventDefault();
-      var totalPrice = 0;
       var totalQty = 0;
+      var totalPrice = 0;
       var netTotal = 0;
-      this.state.selectedProductHeads.map(function (sp) {
+      var extTax = 0;
+      var addExtTax = 0;
+      var addTax = 0;
+      var tax = 0;
+      var tax_ids = [];
+      this.state.selectedProductHeads.length ? this.state.selectedProductHeads.map(function (sp) {
         totalQty += sp.qty;
-        totalPrice += sp.price * sp.qty;
-        netTotal = totalPrice - parseFloat(_this2.state.result.discount);
-      });
+
+        if (_this2.state.selectedTaxes.length) {
+          _this2.state.selectedTaxes.sort(function (a, b) {
+            return a.order - b.order;
+          }).map(function (tx) {
+            tax = parseFloat(sp.qty * sp.price / 100 * tx.value);
+
+            if (tx.order == 1) {
+              extTax = parseFloat(sp.qty * sp.price) + parseFloat(sp.qty * sp.price / 100 * tx.value);
+              addTax = parseFloat(sp.qty * sp.price / 100 * tx.value);
+            }
+
+            if (tx.order == 2) {
+              tax = extTax / 100 * tx.value;
+              addExtTax = extTax / 100 * tx.value;
+            }
+
+            tax_ids.push(tx.id);
+          });
+
+          totalPrice += sp.price * sp.qty + parseFloat(addTax) + parseFloat(addExtTax);
+        } else {
+          totalPrice += sp.price * sp.qty - sp.price * sp.qty / 100 * sp.netDiscPr - sp.netDisc;
+        }
+
+        netTotal = totalPrice - _this2.state.result.discount - totalPrice / 100 * _this2.state.result.percentage_discount;
+      }) : '';
       var currentBalance = netTotal - this.state.result.pay_balance;
       var balance = 0;
       var pay_balance = this.state.result.pay_balance;
@@ -63217,22 +63792,15 @@ function (_Component) {
       var url = location.origin;
       var id = location.pathname.slice(7, -5);
       var self = this;
-      var data = {
+      var data = (_data = {
         customer: this.state.result.customer_id,
         payment_mode: this.state.result.payment_type_id,
         products: this.state.selectedProductHeads,
         discount: this.state.result.discount,
         date: this.state.result.date,
         time: this.state.result.time,
-        pf: this.state.result.pf,
-        remarks: this.state.result.remarks,
-        balance_difference: balance_difference,
-        totalQty: totalQty,
-        totalPrice: totalPrice,
-        balance: balance,
-        netTotal: netTotal,
-        pay_balance: pay_balance
-      };
+        pf: this.state.result.pf
+      }, _defineProperty(_data, "discount", this.state.result.discount), _defineProperty(_data, "pr_dics", this.state.result.percentage_discount), _defineProperty(_data, "remarks", this.state.result.remarks), _defineProperty(_data, "balance_difference", balance_difference), _defineProperty(_data, "totalQty", totalQty), _defineProperty(_data, "tax_ids", tax_ids), _defineProperty(_data, "totalPrice", totalPrice), _defineProperty(_data, "balance", balance), _defineProperty(_data, "netTotal", netTotal), _defineProperty(_data, "pay_balance", pay_balance), _data);
       axios__WEBPACK_IMPORTED_MODULE_1___default.a.put(url + '/sales/' + id, data).then(function (res) {
         if (res.data != 'no') {
           window.open(url + '/sale/' + res.data + '/show', '_blank', 'fullscreen=yes');
@@ -63259,6 +63827,8 @@ function (_Component) {
   }, {
     key: "componentDidMount",
     value: function componentDidMount() {
+      var _this3 = this;
+
       // window.addEventListener("beforeunload", (ev) =>
       // {
       //     ev.preventDefault();
@@ -63295,7 +63865,33 @@ function (_Component) {
       var id = location.pathname.slice(7, -5);
       var self = this;
       axios__WEBPACK_IMPORTED_MODULE_1___default.a.get(url + '/sales-get-customers/' + id + '/edit').then(function (res) {
+        var allTaxes = res.data.all_taxes.map(function (s) {
+          return {
+            label: s.title,
+            id: s.id,
+            value: parseFloat(s.value),
+            order: s.order
+          };
+        });
+        var invoice_id = res.data.invoice_id;
         var sale = res.data.sale;
+        var isTaxApply = sale.sale_details[0].taxes == '' ? 0 : 1;
+
+        if (isTaxApply == 1) {
+          res.data.all_taxes.map(function (tx) {
+            var selectedTax = {
+              label: tx.title,
+              id: tx.id,
+              value: parseFloat(tx.value),
+              order: tx.order
+            };
+
+            _this3.setState(_objectSpread({}, _this3.state, {
+              selectedTaxes: [].concat(_toConsumableArray(_this3.state.selectedTaxes), [selectedTax])
+            }));
+          });
+        }
+
         var customers = res.data.customers.map(function (s) {
           return {
             label: s.name,
@@ -63306,15 +63902,17 @@ function (_Component) {
         var selectedProductHeads = sale.sale_details.map(function (ph) {
           return {
             id: ph.product_head_id,
-            title: ph.product_head.title,
+            title: ph.product_head.title + "-" + ph.product_head.brand.title,
             price: parseFloat(ph.total_price),
+            netDisc: ph.net_discount != null ? parseFloat(ph.net_discount) : 0,
+            netDiscPr: ph.net_percentage_discount != null ? parseFloat(ph.net_percentage_discount) : 0,
             stock: parseFloat(ph.product_head.stock.total_qty - ph.product_head.stock.out_qty),
             qty: ph.total_qty
           };
         });
         var product_heads = res.data.product_heads.map(function (s) {
           return {
-            label: s.title,
+            label: s.title + "-" + s.brand.title,
             value: s.id,
             price: parseFloat(s.stock.price),
             availableQty: parseFloat(s.stock.total_qty) - parseFloat(s.stock.out_qty)
@@ -63322,6 +63920,8 @@ function (_Component) {
         });
         self.setState(_objectSpread({}, self.state, {
           customers: customers,
+          allTaxes: allTaxes,
+          isTaxApply: isTaxApply,
           payment_types: res.data.payment_types,
           selectedCustomer: {
             label: sale.customer.name,
@@ -63335,13 +63935,15 @@ function (_Component) {
             payment_type_id: sale.payment_type.id,
             pay_balance: parseFloat(sale.pay),
             discount: parseFloat(sale.discount),
+            percentage_discount: parseFloat(sale.pr_dics),
             sale: sale,
             date: sale.date,
             time: sale.time,
             old_net_total: sale.net_total,
             old_payment_type_id: sale.payment_type_id,
             old_pay_balance: sale.pay,
-            remarks: sale.remarks
+            remarks: sale.remarks,
+            invoice_id: invoice_id
           }),
           selectedProductHeads: selectedProductHeads,
           product_heads: product_heads
@@ -63435,7 +64037,9 @@ function (_Component) {
             id: e.value,
             title: e.label,
             price: parseFloat(e.price),
-            qty: 1
+            qty: 1,
+            netDisc: '',
+            netDiscPr: ''
           };
           this.setState(_objectSpread({}, this.state, {
             selectedProductHeads: [].concat(_toConsumableArray(this.state.selectedProductHeads), [productHead])
@@ -63618,6 +64222,37 @@ function (_Component) {
       }));
     }
   }, {
+    key: "handleChangeTax",
+    value: function handleChangeTax(e) {
+      var _this4 = this;
+
+      if (e.target.checked) {
+        this.state.allTaxes.map(function (tx) {
+          if (tx.id == e.target.id) {
+            var selectedTax = {
+              label: tx.label,
+              id: tx.id,
+              value: parseFloat(tx.value),
+              order: tx.order
+            };
+
+            _this4.setState(_objectSpread({}, _this4.state, {
+              isTaxApply: 0,
+              selectedTaxes: [].concat(_toConsumableArray(_this4.state.selectedTaxes), [selectedTax])
+            }));
+          }
+        });
+      } else {
+        var selectedTaxes = this.state.selectedTaxes.filter(function (tx) {
+          return tx.id != e.target.id;
+        });
+        this.setState(_objectSpread({}, this.state, {
+          selectedTaxes: selectedTaxes,
+          isTaxApply: 0
+        }));
+      }
+    }
+  }, {
     key: "handleDiscount",
     value: function handleDiscount(e) {
       var discount = parseFloat(e.target.value);
@@ -63632,6 +64267,25 @@ function (_Component) {
         this.setState({
           result: _objectSpread({}, this.state.result, {
             discount: 0
+          })
+        });
+      }
+    }
+  }, {
+    key: "handlePercentageDiscount",
+    value: function handlePercentageDiscount(e) {
+      var percentage_discount = parseFloat(e.target.value);
+
+      if (percentage_discount) {
+        this.setState({
+          result: _objectSpread({}, this.state.result, {
+            percentage_discount: percentage_discount
+          })
+        });
+      } else {
+        this.setState({
+          result: _objectSpread({}, this.state.result, {
+            percentage_discount: 0
           })
         });
       }
@@ -63674,6 +64328,54 @@ function (_Component) {
       });
     }
   }, {
+    key: "handleChangeNetDiscount",
+    value: function handleChangeNetDiscount(e) {
+      var netDisc = parseFloat(e.target.value);
+      var selectedProductHeads;
+
+      if (netDisc > 0) {
+        selectedProductHeads = this.state.selectedProductHeads.map(function (sp) {
+          return sp.id == e.target.id ? _objectSpread({}, sp, {
+            netDisc: netDisc
+          }) : sp;
+        });
+      } else {
+        selectedProductHeads = this.state.selectedProductHeads.map(function (sp) {
+          return sp.id == e.target.id ? _objectSpread({}, sp, {
+            netDisc: ''
+          }) : sp;
+        });
+      }
+
+      this.setState(_objectSpread({}, this.state, {
+        selectedProductHeads: selectedProductHeads
+      }));
+    }
+  }, {
+    key: "handleChangeNetDiscountPercentage",
+    value: function handleChangeNetDiscountPercentage(e) {
+      var netDiscPr = parseFloat(e.target.value);
+      var selectedProductHeads;
+
+      if (netDiscPr > 0) {
+        selectedProductHeads = this.state.selectedProductHeads.map(function (sp) {
+          return sp.id == e.target.id ? _objectSpread({}, sp, {
+            netDiscPr: netDiscPr
+          }) : sp;
+        });
+      } else {
+        selectedProductHeads = this.state.selectedProductHeads.map(function (sp) {
+          return sp.id == e.target.id ? _objectSpread({}, sp, {
+            netDiscPr: ''
+          }) : sp;
+        });
+      }
+
+      this.setState(_objectSpread({}, this.state, {
+        selectedProductHeads: selectedProductHeads
+      }));
+    }
+  }, {
     key: "handleChangeFullView",
     value: function handleChangeFullView(e) {
       this.state.isFullViewChecked ? this.setState({
@@ -63687,15 +64389,41 @@ function (_Component) {
   }, {
     key: "render",
     value: function render() {
-      var _this3 = this;
+      var _this5 = this;
 
       var totalQty = 0;
       var totalPrice = 0;
       var netTotal = 0;
+      var extTax = 0;
+      var addExtTax = 0;
+      var addTax = 0;
+      var tax = 0;
       this.state.selectedProductHeads.length ? this.state.selectedProductHeads.map(function (sp) {
         totalQty += sp.qty;
-        totalPrice += sp.price * sp.qty;
-        netTotal = totalPrice - parseFloat(_this3.state.result.discount);
+
+        if (_this5.state.selectedTaxes.length) {
+          _this5.state.selectedTaxes.sort(function (a, b) {
+            return a.order - b.order;
+          }).map(function (tx) {
+            tax = parseFloat(sp.qty * sp.price / 100 * tx.value);
+
+            if (tx.order == 1) {
+              extTax = parseFloat(sp.qty * sp.price) + parseFloat(sp.qty * sp.price / 100 * tx.value);
+              addTax = parseFloat(sp.qty * sp.price / 100 * tx.value);
+            }
+
+            if (tx.order == 2) {
+              tax = extTax / 100 * tx.value;
+              addExtTax = extTax / 100 * tx.value;
+            }
+          });
+
+          totalPrice += sp.price * sp.qty + parseFloat(addTax) + parseFloat(addExtTax);
+        } else {
+          totalPrice += sp.price * sp.qty - sp.price * sp.qty / 100 * sp.netDiscPr - sp.netDisc;
+        }
+
+        netTotal = totalPrice - _this5.state.result.discount - totalPrice / 100 * _this5.state.result.percentage_discount;
       }) : '';
       var currentBalance = netTotal - this.state.result.pay_balance;
       return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
@@ -63704,7 +64432,7 @@ function (_Component) {
         show: this.state.show,
         title: "Out of stock",
         onConfirm: function onConfirm() {
-          return _this3.setState({
+          return _this5.setState({
             show: false
           });
         }
@@ -63714,14 +64442,14 @@ function (_Component) {
         className: "white-box"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h2", {
         className: "font-bold text-center"
-      }, "Update Sale Invoice # ", this.state.result.sale_id), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+      }, "Update Sale Invoice # ", this.state.result.invoice_id), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "row"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: "col-sm-9"
+        className: "col-sm-12"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "row"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: "col-sm-6",
+        className: "col-sm-3",
         hidden: this.state.result.currentDateAndTime
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "form-group"
@@ -63736,7 +64464,7 @@ function (_Component) {
         id: "date",
         className: "form-control"
       }))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: "col-sm-6",
+        className: "col-sm-3",
         hidden: this.state.result.currentDateAndTime
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "form-group"
@@ -63750,7 +64478,38 @@ function (_Component) {
         name: "time",
         id: "time",
         className: "form-control"
-      })))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+      }))), this.state.allTaxes.map(function (tx) {
+        if (_this5.state.isTaxApply == 1) {
+          return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+            className: "col-sm-3"
+          }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+            className: "checkbox checkbox-primary checkbox-circle"
+          }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
+            key: tx.id,
+            value: tx.value,
+            checked: true,
+            onChange: _this5.handleChangeTax,
+            id: tx.id,
+            type: "checkbox"
+          }), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("label", {
+            htmlFor: _this5.id
+          }, tx.label)));
+        } else {
+          return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+            className: "col-sm-3"
+          }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+            className: "checkbox checkbox-primary checkbox-circle"
+          }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
+            key: tx.id,
+            value: tx.value,
+            onChange: _this5.handleChangeTax,
+            id: tx.id,
+            type: "checkbox"
+          }), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("label", {
+            htmlFor: _this5.id
+          }, tx.label)));
+        }
+      })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "row"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "col-sm-8"
@@ -63768,7 +64527,11 @@ function (_Component) {
         value: '',
         onChange: '',
         options: []
-      })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+      }), this.state.result.customer_balance > 0 ? react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("b", {
+        class: "text-danger "
+      }, "CR: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_6__["addCommas"])(this.state.result.customer_balance)) : '', this.state.result.customer_balance < 0 ? react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("b", {
+        class: "text-success "
+      }, "DR: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_6__["addCommas"])(this.state.result.customer_balance)) : ''), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         hidden: !this.state.chequeDetails,
         className: "form-group"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("label", {
@@ -63796,7 +64559,7 @@ function (_Component) {
         value: ""
       }, "Select Payment Mode "), this.state.payment_types.length ? this.state.payment_types.map(function (pt) {
         return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("option", {
-          selected: pt.id == _this3.state.result.payment_type_id ? true : false,
+          selected: pt.id == _this5.state.result.payment_type_id ? true : false,
           value: pt.id
         }, pt.title);
       }) : react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("option", {
@@ -63818,7 +64581,7 @@ function (_Component) {
         className: "col-sm-11"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         ref: function ref(node) {
-          _this3.node = node;
+          _this5.node = node;
         },
         className: "form-group"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("label", {
@@ -63845,60 +64608,105 @@ function (_Component) {
         onChange: this.handleChange,
         id: "remarks",
         placeholder: "Remarks"
-      })))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("p", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("label", {
-        htmlFor: "size-example"
-      }, "Full View"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(react_switchery_component__WEBPACK_IMPORTED_MODULE_6__["default"], {
-        id: "size-example",
-        size: "small",
-        checked: this.state.isFullViewChecked,
-        onChange: function onChange(e) {
-          return _this3.handleChangeFullView(e);
-        }
-      })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("hr", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+      })))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("hr", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "row"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "col-sm-12"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: "table-responsive " + this.state.tableFullView
+        className: "table-responsive "
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("table", {
         className: "table table-hover"
-      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("thead", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "#"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Products"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Unit Price"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Quantity"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Total Price"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Actions"))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tfoot", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Unit Price"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Total: ", totalQty), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Total: ", totalPrice), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tbody", null, this.state.selectedProductHeads.length ? this.state.selectedProductHeads.map(function (ph, index) {
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("thead", null, this.state.selectedTaxes.length == 0 ? react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "#"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Products"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Unit Price"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Quantity"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Disc %"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Amount"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Disc"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Total Price"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Actions")) : react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "#"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Products"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Unit Price"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Quantity"), this.state.selectedTaxes.length > 0 ? this.state.selectedTaxes.sort(function (a, b) {
+        return a.order - b.order;
+      }).map(function (tx) {
+        return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, tx.label + '(' + tx.value + '%)');
+      }) : '', react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Total Price"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Actions"))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tfoot", null, this.state.selectedTaxes.length == 0 ? react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Unit Price"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Total: ", totalQty), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Total: ", totalPrice.toFixed(2)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null)) : react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Unit Price"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Total: ", totalQty), this.state.selectedTaxes.length > 0 ? this.state.selectedTaxes.map(function (tx) {
+        return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null);
+      }) : '', react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Total: ", totalPrice.toFixed(2)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tbody", null, this.state.selectedTaxes.length > 0 ? this.state.selectedProductHeads.length > 0 ? this.state.selectedProductHeads.map(function (ph, index) {
         return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", {
           key: ph.id
         }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, index + 1), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, ph.title), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
           type: "number",
           value: ph.price,
           id: ph.id,
-          onChange: _this3.handleChangeProductPrice
+          onChange: _this5.handleChangeProductPrice
         })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
           type: "number",
           value: ph.qty,
           id: ph.id,
-          onChange: _this3.handleChangeProductQty
-        })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, ph.qty * ph.price), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
+          onChange: _this5.handleChangeProductQty
+        })), _this5.state.selectedTaxes.length > 0 ? _this5.state.selectedTaxes.sort(function (a, b) {
+          return a.order - b.order;
+        }).map(function (tx) {
+          tax = parseFloat(ph.qty * ph.price / 100 * tx.value);
+
+          if (tx.order == 1) {
+            extTax = parseFloat(ph.qty * ph.price) + parseFloat(ph.qty * ph.price / 100 * tx.value);
+            addTax = parseFloat(ph.qty * ph.price / 100 * tx.value);
+          }
+
+          if (tx.order == 2) {
+            tax = extTax / 100 * tx.value;
+            addExtTax = extTax / 100 * tx.value;
+          }
+
+          return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, tax.toFixed(2));
+        }) : '', react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, (ph.qty * ph.price + parseFloat(addTax) + parseFloat(addExtTax)).toFixed(2)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
           className: "btn btn-danger ",
           onClick: function onClick() {
-            return _this3.handleChangeProductDelete(ph.id);
+            return _this5.handleChangeProductDelete(ph.id);
+          }
+        }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
+          className: "glyphicon glyphicon-remove"
+        }))));
+      }) : react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, "No Product Selected")) : this.state.selectedProductHeads.length > 0 ? this.state.selectedProductHeads.map(function (ph, index) {
+        return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", {
+          key: ph.id
+        }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, index + 1), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, ph.title), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
+          type: "number",
+          value: ph.price,
+          id: ph.id,
+          onChange: _this5.handleChangeProductPrice
+        })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
+          type: "number",
+          value: ph.qty,
+          id: ph.id,
+          onChange: _this5.handleChangeProductQty
+        })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
+          type: "number",
+          value: ph.netDiscPr,
+          id: ph.id,
+          onChange: _this5.handleChangeNetDiscountPercentage
+        })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, (ph.qty * ph.price / 100 * ph.netDiscPr).toFixed(2)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
+          type: "number",
+          value: ph.netDisc,
+          id: ph.id,
+          onChange: _this5.handleChangeNetDiscount
+        })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, (ph.qty * ph.price - ph.qty * ph.price / 100 * ph.netDiscPr - ph.netDisc).toFixed(2)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
+          className: "btn btn-danger ",
+          onClick: function onClick() {
+            return _this5.handleChangeProductDelete(ph.id);
           }
         }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
           className: "glyphicon glyphicon-remove"
         }))));
       }) : react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, "No Product Selected")))))))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: "col-sm-3"
+        className: "col-sm-3 pull-right"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h3", {
         className: "font-bold text-primary"
-      }, "TOTAL AMOUNT: ", totalPrice), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
-        className: "font-bold"
-      }, "Total Quantity: ", totalQty), this.state.result.discount > 0 ? react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
-        className: "font-bold"
-      }, "Discount: ", this.state.result.discount, " ") : '', react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
-        className: "font-bold"
-      }, "Net Total: ", netTotal), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+      }, "TOTAL AMOUNT: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_6__["addCommas"])(totalPrice.toFixed(2))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
+        className: "font-bold text-warning"
+      }, "Total Quantity: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_6__["addCommas"])(totalQty)), this.state.result.discount > 0 ? react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
+        className: "font-bold text-success"
+      }, "Discount: ", this.state.result.discount, " ") : '', this.state.result.percentage_discount > 0 ? react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
+        className: "font-bold text-default"
+      }, "Discount %: ", this.state.result.percentage_discount, " ") : '', react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
+        className: "font-bold text-danger"
+      }, "Net Total: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_6__["addCommas"])(netTotal.toFixed(2))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "form-group",
         hidden: this.state.result.payment_type_id == 2 ? false : true
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
         type: "number",
-        value: this.state.result.pay_balance,
         className: "form-control",
         placeholder: "Pay",
         onChange: this.handlePay
@@ -63907,19 +64715,28 @@ function (_Component) {
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
         type: "number",
         disabled: this.state.selectedProductHeads.length ? false : true,
-        value: this.state.result.discount,
         className: "form-control",
         placeholder: "Discount",
+        value: this.state.result.discount,
         onChange: this.handleDiscount
-      })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
+      })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        className: "form-group"
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
+        type: "number",
+        disabled: this.state.selectedProductHeads.length ? false : true,
+        className: "form-control",
+        placeholder: "Discount %",
+        value: this.state.result.percentage_discount,
+        onChange: this.handlePercentageDiscount
+      })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
         hidden: this.state.result.payment_type_id == 1 ? true : false,
         className: "font-bold"
-      }, "Current Balance: ", netTotal - this.state.result.pay_balance), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
-        className: "font-bold"
-      }, "Remaining Balance: ", this.state.result.customer_balance), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
+      }, "Current Balance: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_6__["addCommas"])((netTotal - this.state.result.pay_balance).toFixed(2))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
+        className: "font-bold text-danger"
+      }, "Remaining Balance: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_6__["addCommas"])(this.state.result.customer_balance - this.state.result.pay_balance + netTotal)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
         hidden: this.state.result.payment_type_id == 1 ? true : false,
-        className: "font-bold"
-      }, "Total Balance: ", this.state.result.sale && this.state.result.sale.customer_id === this.state.result.customer_id ? this.state.result.customer_balance - (this.state.result.sale.net_total - this.state.result.sale.pay - currentBalance) : netTotal + this.state.result.customer_balance - this.state.result.pay_balance), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, this.state.error.length ? this.state.error.map(function (e) {
+        className: "font-bold text-success"
+      }, "Total Balance: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_6__["addCommas"])(this.state.result.customer_balance - this.state.result.pay_balance + (netTotal - this.state.result.old_net_total)))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, this.state.error.length ? this.state.error.map(function (e) {
         return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h5", {
           className: "text-danger font-bold"
         }, "* ", e);
@@ -63963,6 +64780,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(axios__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var react_select__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react-select */ "./node_modules/react-select/dist/react-select.esm.js");
 /* harmony import */ var react_switchery_component__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! react-switchery-component */ "./node_modules/react-switchery-component/es/index.js");
+/* harmony import */ var _helper_common_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../helper/common.js */ "./resources/js/components/helper/common.js");
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
@@ -63992,6 +64810,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 
 function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
 
 
 
@@ -64028,6 +64847,7 @@ function (_Component) {
         cheque_date: null,
         remarks: null,
         pf: true,
+        discount: 0,
         currentDateAndTime: true,
         date: '',
         time: ''
@@ -64040,6 +64860,7 @@ function (_Component) {
     };
     _this.handleChange = _this.handleChange.bind(_assertThisInitialized(_assertThisInitialized(_this)));
     _this.selectProductHead = _this.selectProductHead.bind(_assertThisInitialized(_assertThisInitialized(_this)));
+    _this.handleDiscount = _this.handleDiscount.bind(_assertThisInitialized(_assertThisInitialized(_this)));
     _this.handleChangeProductQty = _this.handleChangeProductQty.bind(_assertThisInitialized(_assertThisInitialized(_this)));
     _this.handleChangeProductDelete = _this.handleChangeProductDelete.bind(_assertThisInitialized(_assertThisInitialized(_this)));
     _this.handleChangeProductPrice = _this.handleChangeProductPrice.bind(_assertThisInitialized(_assertThisInitialized(_this)));
@@ -64123,6 +64944,7 @@ function (_Component) {
         totalQty += sp.qty;
         totalPrice += sp.price * sp.qty;
       });
+      totalPrice -= this.state.result.discount;
       var balance = this.state.result.customer_balance - totalPrice;
       var url = location.origin;
       var self = this;
@@ -64136,6 +64958,7 @@ function (_Component) {
         remarks: this.state.result.remarks,
         totalQty: totalQty,
         totalPrice: totalPrice,
+        discount: this.state.result.discount,
         balance: balance
       };
       axios__WEBPACK_IMPORTED_MODULE_1___default.a.post(url + '/sales-return', data).then(function (res) {
@@ -64232,6 +65055,25 @@ function (_Component) {
     key: "componentWillMount",
     value: function componentWillMount() {
       document.addEventListener('mousedown', this.handleClick, false);
+    }
+  }, {
+    key: "handleDiscount",
+    value: function handleDiscount(e) {
+      var discount = parseFloat(e.target.value);
+
+      if (discount) {
+        this.setState({
+          result: _objectSpread({}, this.state.result, {
+            discount: discount
+          })
+        });
+      } else {
+        this.setState({
+          result: _objectSpread({}, this.state.result, {
+            discount: 0
+          })
+        });
+      }
     }
   }, {
     key: "handleChange",
@@ -64450,6 +65292,7 @@ function (_Component) {
         totalQty += sp.qty;
         totalPrice += sp.price * sp.qty;
       }) : '';
+      totalPrice -= this.state.result.discount;
       return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "row"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
@@ -64640,13 +65483,21 @@ function (_Component) {
         className: "font-bold"
       }, "Total Quantity: ", totalQty), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("br", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("br", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("hr", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
         className: "font-bold"
-      }, "Total Amount: ", totalPrice), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("hr", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
+      }, "Total Amount: ", totalPrice), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("hr", null), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        className: "form-group"
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
+        type: "number",
+        disabled: this.state.selectedProductHeads.length ? false : true,
+        className: "form-control",
+        placeholder: "Discount",
+        onChange: this.handleDiscount
+      })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
         className: "font-bold"
-      }, "Current Balance: ", totalPrice - this.state.result.pay_balance), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
+      }, "Current Balance: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(totalPrice - this.state.result.pay_balance)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
         className: "font-bold"
-      }, "Remaining Balance: ", this.state.result.customer_balance), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
+      }, "Remaining Balance: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(this.state.result.customer_balance)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
         className: "font-bold"
-      }, "Total Balance: ", this.state.result.customer_balance - totalPrice), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, this.state.error.length ? this.state.error.map(function (e) {
+      }, "Total Balance: ", Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_4__["addCommas"])(this.state.result.customer_balance - totalPrice)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, this.state.error.length ? this.state.error.map(function (e) {
         return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h5", {
           className: "text-danger font-bold"
         }, "* ", e);
@@ -65099,7 +65950,7 @@ function (_Component) {
 
       e.preventDefault();
 
-      if (this.state.selectedCustomer != "") {
+      if (this.state.selectedCustomer != "" && this.state.fromDate != "") {
         this.setState({
           loaded: false,
           print: true,
@@ -65123,7 +65974,7 @@ function (_Component) {
         this.setState({
           print: false
         });
-        alert("Please select customer.");
+        alert("Please select customer & from date.");
       }
     }
   }, {
@@ -65301,6 +66152,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react_moment__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react_moment__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var react_loader__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react-loader */ "./node_modules/react-loader/lib/react-loader.js");
 /* harmony import */ var react_loader__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(react_loader__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _helper_common_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../helper/common.js */ "./resources/js/components/helper/common.js");
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -65323,6 +66175,7 @@ function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || func
 
 
 
+
 var SearchResult =
 /*#__PURE__*/
 function (_Component) {
@@ -65338,6 +66191,10 @@ function (_Component) {
     key: "render",
     value: function render() {
       var prev_balance = this.props.balance;
+      var voucher_count = 0;
+      var voucher_num = 0;
+      var sale_count = 0;
+      var sale_num = 0;
       return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         class: "row"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
@@ -65355,13 +66212,16 @@ function (_Component) {
         class: "display nowrap table table-hover table-striped",
         cellspacing: "0",
         width: "100%"
-      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("thead", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Date"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "VchNo"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Description"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Credit"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Debit"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Balance"))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tbody", null, this.props.results.length ? this.props.results.map(function (r) {
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("thead", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Date"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "VchNo"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Description"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Debit"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Credit"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", null, "Balance"))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tbody", null, this.props.results.length ? this.props.results.map(function (r) {
         var debit = r.net_total ? parseFloat(r.net_total) : 0;
         var credit = r.pay ? parseFloat(r.pay) : 0 + r.amount ? parseFloat(r.amount) : 0;
+        voucher_num = r.id;
         var balance = debit - credit;
 
         if (r.amount) {
           debit = prev_balance;
+          voucher_count++;
+          voucher_num = voucher_count;
         }
 
         if (r.invoice_type_id == 2) {
@@ -65372,12 +66232,15 @@ function (_Component) {
           prev_balance -= balance;
         } else {
           prev_balance += balance;
+          sale_num = r.customer_id + '' + sale_count;
         }
 
         return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(react_moment__WEBPACK_IMPORTED_MODULE_1___default.a, {
           format: "D MMM YYYY",
           withTitle: true
-        }, r.date)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, r.id), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, " ", r.invoice_type_id == 1 ? 'Sale Invoice' : '', " ", r.invoice_type_id == 2 ? 'Return Invoice' : '', " ", r.amount ? 'Voucher' : '', " : #", r.id), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, credit), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, debit), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, prev_balance));
+        }, r.date)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, " ", r.invoice_type_id == 1 ? sale_num : '', " ", r.invoice_type_id == 2 ? r.id : '', " ", r.amount ? voucher_count : ''), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, " ", r.invoice_type_id == 1 ? 'Sale Invoice#' + sale_num : '', " ", r.invoice_type_id == 2 ? 'Return Invoice#' + r.id : '', " ", r.amount ? 'Voucher#' + voucher_count : ''), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_3__["addCommas"])(credit.toFixed(2))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_3__["addCommas"])(debit.toFixed(2))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, Object(_helper_common_js__WEBPACK_IMPORTED_MODULE_3__["addCommas"])(prev_balance.toFixed(2))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", {
+          className: "hidden"
+        }, sale_count++));
       }) : ''))))));
     }
   }]);
@@ -66016,6 +66879,42 @@ function (_Component) {
 }(react__WEBPACK_IMPORTED_MODULE_0__["Component"]);
 
 /* harmony default export */ __webpack_exports__["default"] = (SearchResult);
+
+/***/ }),
+
+/***/ "./resources/js/components/helper/common.js":
+/*!**************************************************!*\
+  !*** ./resources/js/components/helper/common.js ***!
+  \**************************************************/
+/*! exports provided: addCommas, round */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "addCommas", function() { return addCommas; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "round", function() { return round; });
+var addCommas = function addCommas(num) {
+  var str = num.toString().split('.');
+
+  if (str[0].length >= 4) {
+    //add comma every 3 digits befor decimal
+    str[0] = str[0].replace(/(\d)(?=(\d{3})+$)/g, '$1,');
+  }
+  /* Optional formating for decimal places
+  if (str[1] && str[1].length >= 4) {
+      //add space every 3 digits after decimal
+      str[1] = str[1].replace(/(\d{3})/g, '$1 ');
+  }*/
+
+
+  return str.join('.');
+};
+
+var round = function round(num) {
+  return Math.round(num * 2) / 2;
+};
+
+
 
 /***/ }),
 
@@ -67273,8 +68172,8 @@ function (_Component) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(/*! D:\Private\spos\resources\js\app.js */"./resources/js/app.js");
-module.exports = __webpack_require__(/*! D:\Private\spos\resources\sass\app.scss */"./resources/sass/app.scss");
+__webpack_require__(/*! D:\learning2\spos\resources\js\app.js */"./resources/js/app.js");
+module.exports = __webpack_require__(/*! D:\learning2\spos\resources\sass\app.scss */"./resources/sass/app.scss");
 
 
 /***/ })

@@ -58,6 +58,22 @@
                 </ul>
             </div>
         </div>
+        <div class="col-lg-3 col-sm-6 col-xs-12">
+            <div class="white-box analytics-info">
+                <h3 class="box-title">Total Debit</h3>
+                <ul class="list-inline two-part">
+                <li class="text-right"><span class="counter text-success">{{ number_format($debit,2) }}</span></li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-lg-3 col-sm-6 col-xs-12">
+            <div class="white-box analytics-info">
+                <h3 class="box-title">Total Credit</h3>
+                <ul class="list-inline two-part">
+                <li class="text-right"><span class="text-danger">{{ number_format($credit,2) }}</span></li>
+                </ul>
+            </div>
+        </div>
     </div>
     <!--/.row -->
     <!--row -->
@@ -128,6 +144,7 @@
                             </tr>
                             </thead>
                             <tbody>
+                            @if(count($recent_purchases))
                                 @foreach($recent_purchases as $rs)
                             <tr>
                             <td>{{$sr++}}</td>
@@ -137,6 +154,7 @@
                             <td><span class="{{$rs->invoice_type_id == 1?'text-success':'text-danger'}}">{{$rs->total_price}}</span></td>
                             </tr>
                                 @endforeach
+                            @endif
                             </tbody>
                         </table>
                     </div>

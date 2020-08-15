@@ -26,6 +26,7 @@
                         <th>Name</th>
                         <th>Purchase</th>
                         <th>Sale</th>
+                        <th>Brand</th>
                         <th>Min Stock</th>
                         <th>Actions</th>
                     </tr>
@@ -37,6 +38,7 @@
                         <th>Name</th>
                         <th>Purchase</th>
                         <th>Sale</th>
+                        <th>Brand</th>
                         <th>Min Stock</th>
                         <th>Actions</th>
                     </tr>
@@ -53,10 +55,11 @@
                             <td>{{$head->title}}</td>
                             <td>{{$head->purchase}}</td>
                             <td>{{$head->sale}}</td>
+                            <td>{{isset($head->brand->title)?$head->brand->title:'N/Y'}}</td>
                             <td>{{$head->min_stock}}</td>
                             <td>
                                 <button class="btn btn-primary " onclick="$('input').parent().removeClass('has-success')" data-toggle="modal" data-target="#responsive-modal-{{$head->id}}" ><span class="glyphicon glyphicon-edit"></span> </button>
-                                {{--<button class="btn btn-danger "  onclick="deleteConfirm({{$head->id}})" id="delete_confirm"><span class="glyphicon glyphicon-remove"></span> </button>--}}
+                               <button class="btn btn-danger "  onclick="deleteConfirm({{$head->id}})" id="delete_confirm"><span class="glyphicon glyphicon-remove"></span> </button>
                             </td>
                             @include('product-head.edit')
 
@@ -158,17 +161,32 @@
                             },
                         dataType: 'json',
                         success: function (data) {
-                            Swal({
-                                position: 'center',
-                                type: 'success',
-                                title: 'Your work has been saved',
-                                showConfirmButton: false,
-                                timer: 1500
-                            });
-                            setTimeout(()=>{
-                            location.reload();
-
-                            },1500);
+                            if(data == 1){
+                                Swal({
+                                    position: 'center',
+                                    type: 'success',
+                                    title: 'Your work has been saved',
+                                    showConfirmButton: false,
+                                    timer: 1500
+                                });
+                                setTimeout(()=>{
+                                location.reload();
+    
+                                },1500);
+                            }
+                            if(data == 2){
+                                Swal({
+                                    position: 'center',
+                                    type: 'error',
+                                    title: 'Sorry! can not delete product head, its in use.',
+                                    showConfirmButton: false,
+                                    timer: 1500
+                                });
+                                setTimeout(()=>{
+                                location.reload();
+    
+                                },1500);
+                            }
 
                         },
                         error: function (error) {

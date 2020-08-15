@@ -43,11 +43,6 @@ class ReturnSaleController extends Controller
      */
     public function store(CreateSaleRequest $request)
     {
-        Customer::whereId($request->customer)
-            ->update([
-                'balance'=>$request->balance
-            ]);
-
         $sale = Sale::create([
             'payment_type_id'=>$request->payment_mode,
             'invoice_type_id'=>2,
@@ -55,10 +50,12 @@ class ReturnSaleController extends Controller
             'total_price'=>$request->totalPrice,
             'total_qty'=>$request->totalQty,
             'pay'=>$request->pay_balance?:0,
+            'cheque_id'=> 0,
             'closing_balance' => $request->balance,
             'date' => $request->date,
             'time' => $request->time,
             'remarks' => $request->remarks,
+            'discount' => $request->discount
         ]);
 
         foreach ($request->products as $product)
@@ -69,11 +66,11 @@ class ReturnSaleController extends Controller
                 'total_qty'=>$product['qty'],
                 'total_price'=>$product['price'],
             ]);
-            $stock =Stock::where('product_head_id',$product['id'])->first();
+            // $stock =Stock::where('product_head_id',$product['id'])->first();
 
-            $stock->out_qty -= $product['qty'];
+            // $stock->out_qty -= $product['qty'];
 
-            $stock->save();
+            // $stock->save();
 
         }
         if ($request->pf){
@@ -118,51 +115,27 @@ class ReturnSaleController extends Controller
     public function update(CreateSaleRequest $request, $id)
     {
         $sale = Sale::find($id);
-        $old_cus=$sale->customer_id;
-        $new_cus=$request->customer;
-
-        if ($old_cus != $new_cus )
-        {
-
-            $sale->customer_id =$request->customer;
-            $customer = customer::find($old_cus);
-            $customer->balance += ($sale->total_price - $sale->pay);
-            $customer->save();
-
-            $new_customer = customer::whereId($request->customer)
-                ->update([
-                    'balance'=>$request->balance
-                ]);
-        }
-        else{
-
-           $old_customer = customer::whereId($old_cus)
-                ->update([
-                    'balance'=>$request->balance
-                ]);
-        }
-
-
-
         $sale->payment_type_id=$request->payment_mode;
         $sale->customer_id=$request->customer;
         $sale->total_price=$request->totalPrice;
         $sale->total_qty=$request->totalQty;
         $sale->pay=$request->pay_balance ?: 0;
+        $sale->cheque_id = 0;
         $sale->closing_balance = $sale->closing_balance - $request->balance_difference;
         $sale->remarks = $request->remarks;
         $sale->time = $request->time;
+        $sale->discount = $request->discount;
         $sale->date = $request->date;
         $sale->save();
 
 
         foreach ($sale->saleDetails as $oldproduct)
         {
-            $stock= Stock::where('product_head_id',$oldproduct->product_head_id)->first();
+            // $stock= Stock::where('product_head_id',$oldproduct->product_head_id)->first();
 
-            $stock->out_qty -= $oldproduct->total_qty;
+            // $stock->out_qty -= $oldproduct->total_qty;
 
-            $stock->save();
+            // $stock->save();
 
             $oldproduct->delete();
         }

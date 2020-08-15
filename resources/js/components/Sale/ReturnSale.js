@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import axios from 'axios';
 import Select from 'react-select';
 import Switch from 'react-switchery-component';
+import {addCommas,round} from "../helper/common.js";
  class ReturnSale extends Component {
      constructor(props){
         super(props);
@@ -25,6 +26,7 @@ import Switch from 'react-switchery-component';
                 cheque_date:null,
                 remarks:null,
                 pf:true,
+                discount:0,
                 currentDateAndTime:true,
                 date:'',
                 time:'',
@@ -41,6 +43,7 @@ import Switch from 'react-switchery-component';
 
     this.handleChange=this.handleChange.bind(this);
     this.selectProductHead=this.selectProductHead.bind(this);
+    this.handleDiscount=this.handleDiscount.bind(this);
     this.handleChangeProductQty=this.handleChangeProductQty.bind(this);
     this.handleChangeProductDelete=this.handleChangeProductDelete.bind(this);
     this.handleChangeProductPrice=this.handleChangeProductPrice.bind(this);
@@ -132,7 +135,7 @@ import Switch from 'react-switchery-component';
              totalPrice += sp.price *sp.qty;
 
          });
-
+         totalPrice -= this.state.result.discount;
         let balance = this.state.result.customer_balance - totalPrice;
 
         let url = location.origin;
@@ -148,6 +151,7 @@ import Switch from 'react-switchery-component';
              remarks:this.state.result.remarks,
              totalQty,
              totalPrice,
+             discount:this.state.result.discount,
              balance
          };
 
@@ -256,6 +260,30 @@ import Switch from 'react-switchery-component';
      componentWillMount() {
          document.addEventListener('mousedown',this.handleClick,false)
      }
+     handleDiscount(e){
+
+        let discount = parseFloat(e.target.value);
+        if (discount){
+            this.setState({
+
+                result:{
+                    ...this.state.result,
+                    discount
+                }
+            });
+        }else
+        {
+            this.setState({
+
+                result:{
+                    ...this.state.result,
+                    discount:0
+                }
+            });
+
+        }
+
+    }
      handleChange(e){
 
         e.preventDefault();
@@ -510,7 +538,7 @@ import Switch from 'react-switchery-component';
 
              :'';
 
-
+            totalPrice -= this.state.result.discount;
         return (
             <div className="row">
                 <div className="col-sm-12">
@@ -739,12 +767,12 @@ import Switch from 'react-switchery-component';
                                             <hr/>
                                             <h4 className="font-bold">Total Amount: {totalPrice}</h4>
                                             <hr/>
-                                            {/*<div className="form-group" hidden={this.state.result.payment_type_id == 1 ? false: true }>*/}
-                                                {/*<input type="number"  className="form-control" placeholder="Pay" onChange={this.handlePay} />*/}
-                                            {/*</div>*/}
-                                            <h4 className="font-bold">Current Balance: {totalPrice-this.state.result.pay_balance}</h4>
-                                            <h4 className="font-bold">Remaining Balance: {this.state.result.customer_balance}</h4>
-                                            <h4 className="font-bold">Total Balance: { this.state.result.customer_balance-totalPrice}</h4>
+                                            <div className="form-group">
+                                                <input type="number" disabled={this.state.selectedProductHeads.length? false : true}  className="form-control" placeholder="Discount" onChange={this.handleDiscount} />
+                                            </div>
+                                            <h4 className="font-bold">Current Balance: { addCommas(totalPrice-this.state.result.pay_balance) }</h4>
+                                            <h4 className="font-bold">Remaining Balance: { addCommas(this.state.result.customer_balance) }</h4>
+                                            <h4 className="font-bold">Total Balance: { addCommas(this.state.result.customer_balance-totalPrice) }</h4>
 
                                              <div >
                                                  {

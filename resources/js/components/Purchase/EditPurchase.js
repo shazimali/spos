@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import axios from 'axios';
 import Select from 'react-select';
 import Switch from 'react-switchery-component';
+import {addCommas} from "../helper/common.js";
  class EditPurchase extends Component {
     constructor(props){
         super(props);
@@ -13,9 +14,11 @@ import Switch from 'react-switchery-component';
             suppliers:[],
             payment_types:[],
             product_heads:[],
+            invoiceOldBalance:'',
             result:{
                 purchase_id:null,
                 supplier_id:null,
+                old_supplier_id:null,
                 supplier_balance:0,
                 pay_balance:'',
                 payment_mode:'',
@@ -248,7 +251,12 @@ import Switch from 'react-switchery-component';
                 })
             });
 
-
+            let invoiceOldBalance ="";
+                selectedProductHeads.map((sp)=>{
+                    let get_price = sp.price *sp.qty;
+                    invoiceOldBalance = +invoiceOldBalance +  +get_price;
+   
+               }) 
           self.setState({
               ...self.state,
 
@@ -264,6 +272,7 @@ import Switch from 'react-switchery-component';
                   ...self.state.result,
                   purchase_id:purchase.id,
                   supplier_id:purchase.supplier.id,
+                  old_supplier_id:purchase.supplier.id,
                   supplier_balance:parseFloat(res.data.cBalance),
                   payment_type_id:purchase.payment_type.id,
                   payment_mode:purchase.payment_type.id,
@@ -273,7 +282,8 @@ import Switch from 'react-switchery-component';
                   time:purchase.time,
                   remarks:purchase.remarks,
               },
-              selectedProductHeads
+              selectedProductHeads,
+              invoiceOldBalance
           })
         })
 
@@ -678,23 +688,18 @@ import Switch from 'react-switchery-component';
 
                                         <div className="col-sm-3">
 
-                                            <h2 className="font-bold">Total Amount: {totalPrice}</h2>
-                                            <h3 className="font-bold">Total Quantity: {totalQty}</h3>
-
-                                            <br/>
-                                            <br/>
-                                            <hr/>
-                                            <h4 className="font-bold">Total Amount: {totalPrice}</h4>
+                                            <h2 className="font-bold">Total Amount: {addCommas(totalPrice)}</h2>
+                                            <h3 className="font-bold">Total Quantity: {addCommas(totalQty)}</h3>
                                             <hr/>
                                             <div className="form-group" hidden={this.state.result.payment_type_id == 1 ? false: true }>
                                                 <input type="number" value={this.state.result.pay_balance} className="form-control" placeholder="Pay" onChange={this.handlePay} />
                                             </div>
-                                            <h4 className="font-bold">Current Balance: {currentBalance}</h4>
-                                            <h4 className="font-bold text-danger">Remaining Balance: {this.state.result.supplier_balance}</h4>
+                                            <h4 className="font-bold">Current Balance: {addCommas(currentBalance)}</h4>
+                                            <h4 className="font-bold text-danger">Remaining Balance: {this.state.result.supplier_id == this.state.result.old_supplier_id ?addCommas(this.state.result.supplier_balance - this.state.invoiceOldBalance):addCommas(this.state.result.supplier_balance)}</h4>
                                             <h4 className="font-bold text-danger">Total Balance: {  this.state.result.purchase &&  this.state.result.purchase.supplier_id === this.state.result.supplier_id
-                                                ? this.state.result.supplier_balance -(this.state.result.purchase.total_price - this.state.result.purchase.pay - currentBalance)
+                                                ? addCommas(this.state.result.supplier_balance -(this.state.result.purchase.total_price - this.state.result.purchase.pay - currentBalance))
 
-                                                : totalPrice + this.state.result.supplier_balance - this.state.result.pay_balance }</h4>
+                                                : addCommas(totalPrice + this.state.result.supplier_balance - this.state.result.pay_balance) }</h4>
 
                                              <div >
                                                  {

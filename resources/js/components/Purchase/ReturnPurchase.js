@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import axios from 'axios';
 import Select from 'react-select';
 import Switch from 'react-switchery-component';
+import {addCommas} from "../helper/common.js";
  class ReturnPurchase extends Component {
     constructor(props){
         super(props);
@@ -628,20 +629,15 @@ import Switch from 'react-switchery-component';
 
                                         <div className="col-sm-3">
 
-                                            <h2 className="font-bold">Total Amount: {totalPrice}</h2>
-                                            <h3 className="font-bold">Total Quantity: {totalQty}</h3>
-
-                                            <br/>
-                                            <br/>
-                                            <hr/>
-                                            <h4 className="font-bold">Total Amount: {totalPrice}</h4>
+                                            <h2 className="font-bold text-success">Total Amount: {addCommas(totalPrice)}</h2>
+                                            <h3 className="font-bold text-success">Total Quantity: {addCommas(totalQty)}</h3>
                                             <hr/>
                                             <div className="form-group" hidden={true}>
                                                 <input type="number" value={this.state.result.pay_balance}  className="form-control" placeholder="Pay" onChange={this.handlePay} />
                                             </div>
-                                            <h4 className="font-bold">Current Balance: {totalPrice-this.state.result.pay_balance}</h4>
-                                            <h4 className="font-bold ">Remaining Balance: {this.state.result.supplier_balance}</h4>
-                                            <h4 className="font-bold ">Total Balance: {  this.state.result.supplier_balance-(totalPrice-this.state.result.pay_balance)}</h4>
+                                            <h4 className="font-bold">Current Balance: {addCommas(totalPrice-this.state.result.pay_balance)}</h4>
+                                            <h4 className="font-bold text-danger">Remaining Balance: {addCommas(this.state.result.supplier_balance)}</h4>
+                                            <h4 className="font-bold text-danger">Total Balance: { addCommas(this.state.result.supplier_balance-(totalPrice-this.state.result.pay_balance))}</h4>
 
                                              <div >
                                                  {

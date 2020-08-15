@@ -34,14 +34,14 @@ class PurchaseController extends Controller
                 'purchase'=>$purchase ,
                 'cBalance'=>Supplier::find($purchase->supplier_id)->cBalance(),
                 'payment_types'=> PaymentType::whereIn('id',[1,2])->orderBy('title')->get(),
-                'product_heads'=> ProductHead::orderBy('title')->get(),
+                'product_heads'=> ProductHead::orderBy('title')->with('brand')->get(),
             ];
         }
 
         return [
             'suppliers'=> Supplier::orderBy('name')->get(),
             'payment_types'=> PaymentType::whereIn('id',[1,2])->orderBy('title')->get(),
-            'product_heads'=> ProductHead::orderBy('title')->with('purchaseDetail')->get(),
+            'product_heads'=> ProductHead::orderBy('title')->with('purchaseDetail','brand')->get(),
             ];
     }
 
@@ -65,10 +65,10 @@ class PurchaseController extends Controller
     {
         
 
-        Supplier::whereId($request->supplier)
-            ->update([
-                'balance'=>$request->balance
-            ]);
+        // Supplier::whereId($request->supplier)
+        //     ->update([
+        //         'balance'=>$request->balance
+        //     ]);
 
         $purchase = Purchase::create([
             'payment_type_id'=>$request->payment_mode,
@@ -149,27 +149,27 @@ class PurchaseController extends Controller
          $old_sup=$purchase->supplier_id;
          $new_sup=$request->supplier;
 
-         if ($old_sup != $new_sup )
-         {
+        //  if ($old_sup != $new_sup )
+        //  {
 
-            $purchase->supplier_id =$request->supplier;
-            $supplier = Supplier::find($old_sup);
-            $supplier->balance -= ($purchase->total_price - $purchase->pay);
-            $supplier->save();
+        //     $purchase->supplier_id =$request->supplier;
+        //     $supplier = Supplier::find($old_sup);
+        //     $supplier->balance -= ($purchase->total_price - $purchase->pay);
+        //     $supplier->save();
 
-             Supplier::whereId($request->supplier)
-                 ->update([
-                     'balance'=>$request->balance
-                 ]);
+        //      Supplier::whereId($request->supplier)
+        //          ->update([
+        //              'balance'=>$request->balance
+        //          ]);
 
-         }else{
+        //  }else{
 
-            Supplier::whereId($old_sup)
-                 ->update([
-                     'balance'=>$request->balance
-                 ]);
+        //     Supplier::whereId($old_sup)
+        //          ->update([
+        //              'balance'=>$request->balance
+        //          ]);
 
-        }
+        // }
 
         $purchase->supplier_id=$request->supplier;
         $purchase->total_price=$request->totalPrice;

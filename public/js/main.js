@@ -12,7 +12,7 @@ function getComma(event) {
     });
   };
 
-  $('#balance, .supplier_balance, .customer_balance').on('keyup', function (event) {
+  $('#amount,.amount, #balance, .supplier_balance, .customer_balance').on('keyup', function (event) {
 
     if(event.which >= 37 && event.which <= 40){
         event.preventDefault();

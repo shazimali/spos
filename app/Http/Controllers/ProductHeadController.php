@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\ProductHead;
 use App\Models\Unit;
+use App\Models\SaleDetail;
+use App\Models\PurchaseDetail;
+use App\Models\Brand;
 use Illuminate\Http\Request;
 
 class ProductHeadController extends Controller
@@ -18,7 +21,8 @@ class ProductHeadController extends Controller
         return view('product-head.index',[
 
            'products_heads'=> ProductHead::all(),
-           'units'=> Unit::all()
+           'units'=> Unit::all(),
+           'brands'=> Brand::all(),
 
         ]);
     }
@@ -46,6 +50,8 @@ class ProductHeadController extends Controller
             'code'=>'required|unique:product_heads',
             'min_stock'=>'required',
             'sale'=>'required',
+            'unit_id'=>'required',
+            'brand_id'=>'required',
             'purchase'=>'required'
         ]);
 
@@ -89,6 +95,8 @@ class ProductHeadController extends Controller
             'min_stock'=>'required',
             'purchase'=>'required',
             'sale'=>'required',
+            'unit_id'=>'required',
+            'brand_id'=>'required',
         ]);
         ProductHead::whereId($id)->update($request->except(['_token']));
         
@@ -103,7 +111,15 @@ class ProductHeadController extends Controller
      */
     public function destroy($id)
     {
-        ProductHead::destroy($id);
-        return 1;
+        $IsSale = SaleDetail::where('product_head_id',$id)->get();
+        $IsPurchase = PurchaseDetail::where('product_head_id',$id)->get();
+
+        if(count($IsSale) || count($IsPurchase)){
+            return 2;
+        }
+        else{
+            ProductHead::destroy($id);
+            return 1;
+        }
     }
 }

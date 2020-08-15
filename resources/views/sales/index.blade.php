@@ -45,15 +45,17 @@
                     </tr>
                     </tfoot>
                     <tbody>
-                    @php($sn=1)
+                    @php $sn=1; @endphp
 
                     @foreach($sales as $sale)
-
+                        @php 
+                        $count = $sales->where('customer_id',$sale->customer->id)->where('id','<',$sale->id)->where('invoice_type_id',1)->count();
+                        @endphp
                         <tr>
                             <td>{{$sn++}}</td>
 
 
-                        <td><a href="javascript:" onclick="window.open('{{route('sale-inovice-print',$sale->id)}}','_blank' ,  'fullscreen=yes');">sl#{{$sale->id}}</a></td>
+                        <td><a href="javascript:" onclick="window.open('{{route('sale-inovice-print',$sale->id)}}','_blank' ,  'fullscreen=yes');">CS{{$sale->customer->id}}-{{$count}}</a></td>
                             <td>{{$sale->customer->name}}</td>
                             <td>{{$sale->paymentType->title}}</td>
                             <td>{{$sale->total_qty}}</td>

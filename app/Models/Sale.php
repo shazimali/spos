@@ -35,12 +35,17 @@ class Sale extends Model
 
     public function scopeNewType()
     {
-        return $this->where('invoice_type_id',1);
+        return $this->where('invoice_type_id',1)->where('cheque_id',0);
     }
 
     public function ScopeProfitLoss($query)
     {
         return $query->with('customer','saleDetail.purchaseRate');
+    }
+
+    public function customerSale()
+    {
+        return $this->belongsToMany(Sale::class,'customer_sale');
     }
 
 

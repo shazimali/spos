@@ -1,6 +1,7 @@
 @extends('_layout.master')
 
 @section('title', 'Stock Record')
+
 @section('css')
 
     <link href="{{asset('plugins/bower_components/datatables/media/css/dataTables.bootstrap.css')}}" rel="stylesheet" type="text/css" />
@@ -13,21 +14,9 @@
 
     <div class="col-sm-12">
         <div class="white-box">
-            <h3 class="box-title m-b-0">Stock Record
+            <h3 class="box-title m-b-0">Stock Record &nbsp; &nbsp;
             </h3>
-                {{-- <div class="row">
-                    <form role="form" class="form-horizontal" action="{{url()->current()}}">
-                        <div class="form-group">
-                            <label class="col-sm-2 control-label" for="r_qty">Remaining Stock</label>
-                            <div class="col-sm-4">
-                                <input type="number" id="r_qty" name="r_qty" class="form-control input-sm" placeholder="Remaining Stock">
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-success">Search</button>
-                    </form>
-                </div> --}}
             <hr>
-
             <div class="table-responsive">
                 <table id="example23" class="display nowrap table table-hover table-striped" cellspacing="0" width="100%">
                     <thead>
@@ -38,15 +27,29 @@
                         <th>Remaining</th>
                     </tr>
                     </thead>
+                    <tfoot>
+                    <tr>
+                        <th>Products</th>
+                        <th>Total In</th>
+                        <th>Total Out</th>
+                        <th>Remaining</th>
+                    </tr>
+                    </tfoot>
                     <tbody>
-                        @foreach($stocks as $st)
+                    @foreach($stocks as $st)
                         <tr>
                             @php
                             $pr_qty = 0;
                             $sl_qty = 0;
+                            foreach($st->allPurchases as $pr){
+
+                                $pr_qty += $pr->total_qty;
+                            }
+                            foreach($st->allSales as $sl){
+
+                                $sl_qty += $sl->total_qty;
+                            }
                             @endphp
-                            <td hidden>@foreach($st->allPurchases as $pr){{ $pr_qty += $pr->total_qty}}@endforeach</td>
-                            <td hidden>@foreach($st->allSales as $sl){{$sl_qty += $sl->total_qty}}@endforeach</td>
                         <td>{{$st->code.'-'.$st->title}}</td>
                         <td>{{$pr_qty}}</td>
                         <td>{{$sl_qty}}</td>
@@ -59,6 +62,7 @@
         </div>
 
     </div>
+
     </div>
 
 @stop
@@ -125,6 +129,53 @@
         });
         $('.buttons-copy, .buttons-csv, .buttons-print, .buttons-pdf, .buttons-excel').addClass('btn btn-primary m-r-10');
 
+        function deleteConfirm(id){
+            swal({
+                title: "Are you sure?",
+                text: "You will not be able to recover this!",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Yes, delete it!",
+                closeOnConfirm: false
+            }).then((result) => {
+                if (result.value) {
+
+                    $.ajax({
+                        type:'DELETE',
+                        url: '{{url('purchase')}}/'+id,
+                        headers:
+                            {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            },
+                        dataType: 'json',
+                        success: function (data) {
+                            Swal({
+                                position: 'center',
+                                type: 'success',
+                                title: 'Your work has been saved',
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
+                            setTimeout(()=>{
+                            location.reload();
+
+                            },1500);
+
+                        },
+                        error: function (error) {
+                            Swal({
+                                position: 'center',
+                                type: 'warning',
+                                title: 'Network Error',
+                                showConfirmButton: true,
+                            });
+                        }
+
+                    });
+                }
+            });
+        };
 
 
 
@@ -132,4 +183,127 @@
     <script src="{{asset('plugins/bower_components/sweetalert/sweetalert.min.js')}}"></script>
     <script src="{{asset('plugins/bower_components/sweetalert/jquery.sweet-alert.custom.js')}}"></script>
 
+    <script>
+
+        function createSupplier(){
+
+
+            $('.has-error').removeClass('has-error');
+            $('.has-success').removeClass('has-success');
+            $('.help-block').remove();
+            $('.form-control-feedback').remove();
+            $('input').parent().addClass('has-success');
+
+
+
+            $.ajax({
+                type:'POST',
+                url: '{{url('suppliers')}}',
+                data:$('#create-supplier').serialize(),
+                dataType: 'json',
+                success: function (data) {
+
+
+                    Swal({
+                        position: 'center',
+                        type: 'success',
+                        title: 'Your work has been saved',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+
+                    setTimeout(()=>{
+
+                        location.reload();
+
+                    },1500);
+
+                },
+                error: function (error) {
+                    Swal({
+                        position: 'center',
+                        type: 'warning',
+                        title: 'Please Check Form Errors !',
+                        showConfirmButton: true,
+                    });
+                    if (error.responseJSON) {
+
+                        let errors = error.responseJSON.errors;
+                        $.each(errors, function (key,value) {
+
+                            $('#'+key).parent().removeClass('has-success ');
+                            $('#'+key).parent().addClass('has-error has-feedback');
+                            $('#'+key).after(' <span class="glyphicon glyphicon-remove form-control-feedback"></span>');
+                            $('#'+key).after('<div class="help-block with-errors">'+ value[0] +'</div>');
+                        } );
+
+                    }
+
+                }
+
+            });
+
+        }
+        function updateSupplier(id){
+
+
+            $('.has-error').removeClass('has-error');
+            $('.has-success').removeClass('has-success');
+            $('.help-block').remove();
+            $('.form-control-feedback').remove();
+            $('input').parent().addClass('has-success');
+
+
+
+            $.ajax({
+                type:'PUT',
+                url: '{{url('suppliers')}}/'+id+'/edit',
+                data:$('#edit-supplier-'+id).serialize(),
+                dataType: 'json',
+                success: function (data) {
+
+                    Swal({
+                        position: 'center',
+                        type: 'success',
+                        title: 'Your work has been saved',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+
+                    setTimeout(()=>{
+
+                        location.reload();
+
+                    },1500);
+
+                },
+                error: function (error) {
+                    Swal({
+                        position: 'center',
+                        type: 'warning',
+                        title: 'Please Check Form Errors !',
+                        showConfirmButton: true,
+                    });
+                    if (error.responseJSON) {
+
+                        let errors = error.responseJSON.errors;
+                        $.each(errors, function (key,value) {
+                                 key=key+'-'+id;
+                            $('#'+key).parent().removeClass('has-success');
+                            $('#'+key).parent().addClass('has-error has-feedback');
+                            $('#'+key).after(' <span class="glyphicon glyphicon-remove form-control-feedback"></span>');
+                            $('#'+key).after('<div class="help-block with-errors">'+ value[0] +'</div>');
+                        } );
+
+                    }
+
+                }
+
+            });
+
+        }
+
+
+
+    </script>
     @stop

@@ -18,6 +18,11 @@ class SaleDetail extends Model
         return $this->belongsTo(Sale::class);
     }
 
+    public function taxes()
+    {
+        return $this->belongsToMany(Tax::class,'sale_detail_tax');
+    }
+
     public function purchaseRate()
     {
         return $this->hasOne(PurchaseDetail::class,'product_head_id','product_head_id')->orderBy('total_price','desc');

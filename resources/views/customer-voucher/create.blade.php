@@ -27,7 +27,7 @@
                     </div>
                     <div class="form-group ">
                         <label for="name" class="control-label">Amount:</label>
-                        <input type="number" name="amount" class="form-control" id="amount" >
+                        <input type="text" name="amount" class="form-control" id="amount" >
                     </div>
                     <div class="form-group ">
                         <label for="name" class="control-label">Remarks:</label>

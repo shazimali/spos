@@ -40,7 +40,7 @@ class Filter extends Component{
     handleSubmit(e){
 
         e.preventDefault()
-        if(this.state.selectedCustomer != ""){
+        if(this.state.selectedCustomer != "" && this.state.fromDate != ""){
 
             this.setState({
 
@@ -81,7 +81,7 @@ class Filter extends Component{
                 print:false
             })
 
-            alert("Please select customer.")
+            alert("Please select customer & from date.")
         }
 
 

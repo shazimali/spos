@@ -30,8 +30,8 @@
                             <tr>
                             <td>CR#{{$vc->id}}</td>
                             <td>CS#{{$vc->customer_id}}</td>
-                            <td>{{$vc->customer->name}}</td>
-                            <td>{{$vc->amount}}</td>
+                            <td>{{isset($vc->customer)? $vc->customer->name:''}}</td>
+                            <td>{{number_format($vc->amount,2) }}</td>
                             <td>{{$vc->date}}</td>
                             <td>
                             <button class="btn btn-primary " onclick="$('input').parent().removeClass('has-success')" data-toggle="modal" data-target="#responsive-modal-{{$vc->id}}" ><span class="glyphicon glyphicon-edit"></span> </button>
@@ -176,8 +176,8 @@
             $.get(url,function(data){
 
                 if(data){
-
-                    $("#customer_name").after('<span class="customer_balance text-bold">Balance:'+ data +'</span>');
+                   var comma_val = data.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
+                    $("#customer_name").after('<span class="customer_balance text-bold text-danger">Balance:'+ comma_val +'</span>');
                     $("#balance").val(data);
                 }
 
@@ -197,8 +197,8 @@
             $.get(url,function(data){
 
                 if(data){
-
-                    $(".edit_customer_name").after('<span class="edit_customer_balance">Balance:'+ data +'</span>');
+                    var comma_val = data.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
+                    $(".edit_customer_name").after('<span class="edit_customer_balance text-bold text-danger">Balance:'+ comma_val +'</span>');
                     $("#edit_balance").val(data);
                 }
 

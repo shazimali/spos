@@ -8,7 +8,7 @@
                 <form id="edit-customer-voucher-{{$vc->id}}">
                     <div>
                         @csrf
-                        <input type="hidden" name="edit_balance" id="edit_balance" value="{{$customers->where('id',$vc->supplier_id)->pluck('balance')->first()}}">
+                        <input type="hidden" name="edit_balance" id="edit_balance" value="{{$customers->where('id',$vc->customer_id)->first()->cBalance()}}">
                     </div>
                     <div class="form-group ">
                             <label class="control-label">Date:</label>
@@ -21,11 +21,11 @@
                                 <option @if($customer->id == $vc->customer_id) selected @endif value="{{$customer->id}}">{{$customer->id}}-{{$customer->name}}</option>
                                     @endforeach
                             </select>
-                        <span class="edit_customer_balance">Balance:{{$customer->where('id',$vc->customer_id)->pluck('balance')->first()}}</span>
+                        <span class="edit_customer_balance text-bold text-danger">Balance:{{number_format($customers->where('id',$vc->customer_id)->first()->cBalance(),2)}}</span>
                     </div>
                     <div class="form-group ">
                         <label class="control-label">Amount:</label>
-                        <input type="number" value="{{$vc->amount}}" name="amount" class="form-control" id="amount-{{$vc->id}}" >
+                        <input value="{{$vc->amount}}" name="amount" class="form-control amount" id="amount-{{$vc->id}}" >
                     </div>
                     <div class="form-group ">
                         <label for="name" class="control-label">Remarks:</label>
