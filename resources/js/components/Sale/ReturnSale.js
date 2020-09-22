@@ -238,7 +238,7 @@ import {addCommas,round} from "../helper/common.js";
                     return  ({
                         label:s.title,
                         value:s.id,
-                        price:parseFloat(s.stock.price)
+                        price:parseFloat(s.sale)
                     })
             });
 

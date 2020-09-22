@@ -42,12 +42,15 @@
                             $pr_qty = 0;
                             $sl_qty = 0;
                             foreach($st->allPurchases as $pr){
-
-                                $pr_qty += $pr->total_qty;
+                                if($pr->purchase->invoice_type_id == 1){
+                                    $pr_qty += $pr->total_qty;
+                                }
                             }
                             foreach($st->allSales as $sl){
-
+                                if($sl->sale &&  $sl->sale->invoice_type_id == 1){
                                 $sl_qty += $sl->total_qty;
+                                }
+
                             }
                             @endphp
                         <td>{{$st->code.'-'.$st->title}}</td>

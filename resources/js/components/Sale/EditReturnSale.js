@@ -180,7 +180,7 @@ import Switch from 'react-switchery-component';
                 return  ({
                     label:s.title,
                     value:s.id,
-                    price:parseFloat(s.stock.price)
+                    price:parseFloat(s.sale)
                 })
             });
             let selectedProductHeads= sale.sale_details.map((ph)=>{

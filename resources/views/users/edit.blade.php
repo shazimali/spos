@@ -45,7 +45,7 @@
                         <div class="form-group">
                                 <label class="col-md-12">New Password</label>
                                 <div class="col-md-12">
-                                    <input type="password" class="form-control" >
+                                    <input name="password" type="password" class="form-control" >
                             @if($errors->has('password'))<span class="text-danger">{{$errors->first('password')}}</span>@endif
 
                                 </div>

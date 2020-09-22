@@ -74,9 +74,9 @@ class ReturnPurchaseController extends Controller
                 'total_price'=>$product['price'],
             ]);
 
-            $stock =Stock::where('product_head_id',$product['id'])->first();
-            $stock->total_qty -= $product['qty'];
-            $stock->save();
+            // $stock =Stock::where('product_head_id',$product['id'])->first();
+            // $stock->total_qty -= $product['qty'];
+            // $stock->save();
         }
 
 
@@ -156,11 +156,11 @@ class ReturnPurchaseController extends Controller
                 'total_price'=>$product['price'],
             ]);
 
-            $stock =Stock::where('product_head_id',$product['id'])->first();
+            // $stock =Stock::where('product_head_id',$product['id'])->first();
 
-                $stock->total_qty -= $product['qty'];
+            //     $stock->total_qty -= $product['qty'];
 
-                $stock->save();
+            //     $stock->save();
 
         }
 

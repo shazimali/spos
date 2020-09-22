@@ -6,6 +6,7 @@ import 'react-switchery-component/react-switchery-component.css';
 import 'sweetalert/dist/sweetalert.css';
 import {addCommas,round} from "../helper/common.js";
 import Switch from 'react-switchery-component';
+import { padStart } from 'lodash';
  class EditSale extends Component {
     constructor(props){
         super(props);
@@ -94,7 +95,7 @@ import Switch from 'react-switchery-component';
          let tax = 0;
          let tax_ids = [];
           this.state.selectedProductHeads.length ? this.state.selectedProductHeads.map((sp)=>{
-              totalQty+=sp.qty;
+              totalQty = parseFloat(totalQty) + parseFloat(sp.qty);
              if(this.state.selectedTaxes.length){
                  this.state.selectedTaxes.sort((a,b) =>a.order-b.order).map((tx) => {
                      tax = parseFloat(sp.qty*sp.price/100*tx.value);
@@ -319,11 +320,27 @@ import Switch from 'react-switchery-component';
                 })
             });
             let product_heads= res.data.product_heads.map((s)=>{
+                let total_purchase_qty = 0;
+                s.all_purchases.map((pr) => {
+                    total_purchase_qty = parseFloat(total_purchase_qty) + parseFloat(pr.total_qty) 
+                });
+                let total_sale_qty = 0;
+                s.all_sales.map((sl) => {
+                    if(sl.sale.invoice_type_id == 1){
+                        
+                        total_sale_qty = parseFloat(total_sale_qty) + parseFloat(sl.total_qty)
+                        if(sl.sale_id == sale.id){
+                            total_sale_qty -= parseFloat(sl.total_qty)
+                        }
+                    }                    
+                });
                 return  ({
                     label:s.title+"-"+s.brand.title,
                     value:s.id,
-                    price:parseFloat(s.stock.price),
-                    availableQty:parseFloat(s.stock.total_qty) - parseFloat(s.stock.out_qty)
+                    price:parseFloat(s.sale),
+                    availableQty:parseFloat(total_purchase_qty) - parseFloat(total_sale_qty),
+                    totalPurchaseQty:parseFloat(total_purchase_qty),
+                    totalSaleQty:parseFloat(total_sale_qty)
                 })
             });
           self.setState({
@@ -341,7 +358,7 @@ import Switch from 'react-switchery-component';
                   ...self.state.result,
                   sale_id:sale.id,
                   customer_id:sale.customer.id,
-                  customer_balance:parseFloat(res.data.cBalance),
+                  customer_balance:parseFloat((res.data.cBalance).toFixed(2)),
                   payment_type_id:sale.payment_type.id,
                   pay_balance:parseFloat(sale.pay),
                   discount:parseFloat(sale.discount),
@@ -459,8 +476,9 @@ import Switch from 'react-switchery-component';
 
                 );
                     if (check){
-
-                        if(product.availableQty > check.qty){
+                        let totalOut = parseFloat(product.totalSaleQty) + parseFloat(check.qty)
+                        // if(product.availableQty > check.qty){
+                        if(totalOut+1 <= parseFloat(product.totalPurchaseQty)){
 
                             const selectedProductHeads =  this.state.selectedProductHeads.map(sp=>  sp.id == e.value  ?
                                 {...sp, qty:sp.qty+1}
@@ -546,9 +564,9 @@ import Switch from 'react-switchery-component';
            ph.value == e.target.id
 
        );
-
-       if(qty <= product.availableQty){
-
+       let totalOut = parseFloat(product.totalSaleQty) + parseFloat(qty)
+       //    if(qty <= product.availableQty ){
+        if(totalOut <= parseFloat(product.totalPurchaseQty) ){
            let selectedProductHeads;
 
         if (qty>0){
@@ -569,7 +587,6 @@ import Switch from 'react-switchery-component';
             ...this.state,
             selectedProductHeads
         })
-
        }
 
        else {
@@ -893,7 +910,7 @@ import Switch from 'react-switchery-component';
              let addTax = 0;
              let tax = 0;
               this.state.selectedProductHeads.length ? this.state.selectedProductHeads.map((sp)=>{
-                  totalQty+=sp.qty;
+                totalQty = parseFloat(totalQty) + parseFloat(sp.qty);
                  if(this.state.selectedTaxes.length){
                      this.state.selectedTaxes.sort((a,b) =>a.order-b.order).map((tx) => {
                          tax = parseFloat(sp.qty*sp.price/100*tx.value);

@@ -26,11 +26,7 @@
 
             <div class="card-body">
                 <div class="row mb-4">
-                    <div class="col-sm-6">
-                        <h6 class="mb-3">By:</h6>
-                    </div>
-
-                    <div class="col-sm-6">
+                    <div class="col-sm-12">
                         <h6 class="mb-3">Customer Info:</h6>
                         <div>
                             <strong>{{$customer->name}}</strong>
@@ -79,39 +75,60 @@
                         <tbody>
                             @php
 
-                            $prev_balance = 0;
+                            $prev_balance = $balance;
+                            $voucher_count = 0;
+                            $voucher_num = 0;
+                            $sale_count = 0;
+                            $sale_num = 0;
 
                         @endphp
                     @foreach($results as $item)
                     @php
+                    $debit= isset($item['net_total']) && $item['net_total'] ? (float)($item['net_total']):0  ;
+                        if(isset($item['pay'])){
+                                $credit=$item['pay'] ? (float)($item['pay']):0;
+                        }
+                        if(isset($item['amount'])){
+                            $credit=(float)($item['amount']);
+                        }
+                       
+                                $voucher_num = $item['id'];
+                                $current_balance=$debit-$credit;
+                                if(isset($item['amount']) && $item['amount']){
+                                    $debit= $prev_balance;
+                                    $voucher_count++;
+                                    $voucher_num = $voucher_count;
+                                    $prev_balance -= $item['amount'];
+                                    
+                                 }
+                                 if(isset($item['invoice_type_id']) && $item['invoice_type_id']==2){
+                                    $debit=(float)($item['total_price']);
+                                    $current_balance=$debit-$credit;
+                                    $credit=$debit;
+                                    $debit=$prev_balance;
+                                    $prev_balance-=$current_balance;
 
+                                 }
+                                 if(isset($item['invoice_type_id']) && $item['invoice_type_id']==1){
+                                    
+                                    $prev_balance+=$current_balance;
+                                    $sale_num = $item['customer_id'].'-'.$sale_count;
+                                    $sale_count++;
 
-                    $debit=array_key_exists('total_price',$item) ? (float)($item['total_price']):0;
-                    $credit=array_key_exists('pay',$item) ? (float)($item['pay']) : 0  + (array_key_exists('amount',$item) ? (float)($item['amount']) : 0);
-                    $balance=$credit-$debit;
-                    if(array_key_exists('amount',$item))
-                    {
-                        $debit= $prev_balance;
-                     }
-
-
-                     if(array_key_exists('invoice_type_id',$item)==2){
-                        $balance=$credit-$debit;
-                        $credit=$debit;
-                        $debit= $prev_balance;
-                        $prev_balance-=$balance;
-
-                     }else{
-
-                        $prev_balance+=$balance;
-
-                     }
-
+                                 }
+                        
                     @endphp
 
+                    <tr>
+                        <td>{{$item['date']}}</td>
+                        <td> {{ isset($item['invoice_type_id']) && $item['invoice_type_id']==1 ? $sale_num  :''  }} {{ isset($item['invoice_type_id']) && $item['invoice_type_id']==2 ? $item['id'] :''  }} {{ isset($item['amount']) && $item['amount']  ? $voucher_count  :''  }}</td>  
+                        <td> {{  isset($item['invoice_type_id']) && $item['invoice_type_id']==1 ? 'Sale Invoice#'. $sale_num  :''  }} {{ isset($item['invoice_type_id']) && $item['invoice_type_id']==2 ? 'Return Invoice#'.$item['id'] :''  }} {{ isset($item['amount']) && $item['amount'] ? 'Voucher#'.$voucher_count  :''  }}</td>
+                        <td>{{ number_format($credit,2)}}</td>
+                        <td>{{number_format($debit,2)}}</td>
+                        <td>{{number_format($prev_balance,2) }}</td>
+                    </tr>
 
-
-                            <tr>
+                            <!-- <tr>
 
                             <td>{{$item['date']}}</td>
                                 <td>Sale Invoice: #{{$item['id']}}</td>
@@ -119,14 +136,14 @@
                                 <td>{{ number_format($credit,2)}}</td>
                                 <td>{{number_format($debit,2)}}</td>
                                 <td>{{number_format($prev_balance,2) }}</td>
-                            </tr>
+                            </tr> -->
 
 
                     @endforeach
                         <tfoot>
                             <th colspan="5"></th>
 
-                        <th>{{$customer->balance}}</th>
+                        <th>{{number_format($prev_balance,2)}}</th>
                         </tfoot>
                         </tbody>
                     </table>
@@ -134,7 +151,6 @@
 
             </div>
         </div>
-                <p class="mb-0">Developed by: http://itechdoor.com Contacts: +92 300 6472235, +92 324 6289768</p>
     </div>
 </div>
 

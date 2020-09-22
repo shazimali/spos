@@ -34,7 +34,7 @@ class SaleController extends Controller
                 'sale'=> $sale,
                 'cBalance'=>Customer::find($sale->customer_id)->cBalance(),
                 'payment_types'=> PaymentType::whereIn('id',[1,2])->orderBy('title')->get(),
-                'product_heads'=> ProductHead::orderBy('title')->whereHas('stock')->with('stock','brand')->get(),
+                'product_heads'=> ProductHead::orderBy('title')->with('stock','brand','allPurchases.purchase','allSales.sale')->get(),
                 'all_taxes' =>Tax::orderBy('order','asc')->get(),
                 'invoice_id' => 'CS'.$sale->customer_id.'-'.Sale::where('customer_id',$sale->customer_id)->where('id','<',$id)->where('invoice_type_id',1)->count()
             ];
@@ -43,7 +43,7 @@ class SaleController extends Controller
         return [
             'customers'=> Customer::orderBy('name')->get(),
             'payment_types'=> PaymentType::whereIn('id',[1,2])->orderBy('title')->get(),
-            'product_heads'=> ProductHead::orderBy('title')->whereHas('stock')->with('stock','brand')->get(),
+            'product_heads'=> ProductHead::orderBy('title')->with('stock','brand','allPurchases.purchase','allSales.sale')->get(),
             'all_taxes' =>Tax::orderBy('order','asc')->get()
         ];
 

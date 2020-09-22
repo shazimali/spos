@@ -25,7 +25,7 @@ class HomeController extends Controller
             //     $q->where('invoice_type_id',1)->whereMonth('created_at', Carbon::now()->month);
 
             //     })->with('sale')->get();
-                $all_customers = Customer::all();
+                $all_customers = Customer::where('id','!=',1000)->get();
                 $credit = 0;
                 $debit = 0;
                 foreach ($all_customers as $customer) {

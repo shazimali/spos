@@ -15,7 +15,9 @@
             <div class="white-box">
                 <h3 class="box-title m-b-0">Roles List
                     &nbsp; &nbsp;
+                    @permission(['create_role'])
                     <a href="{{url('role/create')}}" class="btn btn-success"><i class="fa fa-plus"></i></a>
+                    @endpermission
                 </h3>
                 <hr>
                 <div class="table-responsive">
@@ -24,7 +26,9 @@
                             <tr>
                                 <th>Title</th>
                                 <th>Assigned Users</th>
+                                @permission(['edit_role','delete_role'])
                                 <th>Action</th>
+                                @endpermission
                             </tr>
                         </thead>
                         <tbody>
@@ -33,10 +37,12 @@
                             <td>{{$role->name}}</td>
                             {{-- <td>{{$role->users->pluck('name')}}</td> --}}
                             <td>@foreach($role->users->pluck('name') as $get_rol){{$get_rol}}&nbsp;@endforeach</td>
+                            @permission(['edit_role','delete_role'])
                             <td>
                                 <a class="btn btn-primary " href="{{url('role/edit/'.$role->id)}}"><span class="glyphicon glyphicon-edit"></span> </a>
                                 <button class="btn btn-danger "  onclick="deleteConfirm({{$role->id}})" id="delete_confirm"><span class="glyphicon glyphicon-remove"></span> </button>
                             </td>
+                            @endpermission
                             </tr>
                             @endforeach
                         </tbody>

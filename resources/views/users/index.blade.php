@@ -13,9 +13,9 @@
         <div class="col-sm-12">
             <div class="white-box">
                 <h3 class="box-title m-b-0">Users List &nbsp; &nbsp;
-
+                @permission(['create_user'])
                     <a href="{{url('user/create')}}" class="btn btn-danger waves-effect waves-light"><i class="fa fa-plus"></i></a>
-
+                @endpermission
                 </h3>
                 <hr>
                 <div class="table-responsive">
@@ -36,7 +36,7 @@
                             <tr>
                             <td>{{$user->name}}</td>
                                 <td>{{$user->email}}</td>
-                            <td>{{$user->role->first()->name}}</td>
+                            <td> @if(isset($user->role->first()->name))  {{$user->role->first()->name}} @else n/y @endif</td>
                             <td>{{$user->created_at->diffForHumans()}}</td>
                             @permission(['edit_user','delete_user'])
                             <td>

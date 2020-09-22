@@ -80,7 +80,11 @@
              <li> <a href="" class="waves-effect"><i class="mdi mdi-content-copy fa-fw"></i> <span class="hide-menu">Role Manger<span class="fa arrow"></span></span></a>
                 <ul class="nav nav-second-level">
                     <li><a href="{{url('role')}}"><i class="ti-layout-width-default fa-fw"></i> <span class="hide-menu">Roles List</span></a></li>
+                    @permission(['create_role'])
+
                     <li><a href="{{url('role/create')}}"><i class="ti-layout-sidebar-left fa-fw"></i> <span class="hide-menu">Create Role</span></a></li>
+                    @endpermission
+
                 </ul>
             </li> 
         </ul>

@@ -30,6 +30,13 @@ class ProductHead extends Model
           }]);
     }
 
+    public function sales()
+    {
+        return $this->with(['allSales.sale'=> function($q){
+            $q->where('invoice_type_id',1);
+          }]);
+    }
+
     public function allSales()
     {
         return $this->hasMany(SaleDetail::class);

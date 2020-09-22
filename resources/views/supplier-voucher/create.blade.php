@@ -27,11 +27,11 @@
                     </div>
                     <div class="form-group ">
                         <label for="name" class="control-label">Amount:</label>
-                        <input type="number" name="amount" class="form-control" id="amount" >
+                        <input type="text" name="amount" class="form-control" id="amount" >
                     </div>
                     <div class="form-group ">
                         <label for="name" class="control-label">Remarks:</label>
-                        <input type="text" value="{{$vc->remarks}}" maxlength="500" name="remarks" class="form-control" id="remarks" >
+                        <input type="text" value="" maxlength="500" name="remarks" class="form-control" id="remarks" >
                     </div>
                     </form>
 

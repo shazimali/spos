@@ -54,7 +54,6 @@ class UserController extends Controller
 
     public function update(UserUpdateRequest $request,$id){
 
-
         $user = User::find($id);
 
         $user->name = $request->name;
@@ -67,7 +66,7 @@ class UserController extends Controller
 
             $user->password = bcrypt($request->password);
         }
-
+        
         $user->save();
         return redirect('user')->with('success','User updated successfully.');
 

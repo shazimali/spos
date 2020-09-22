@@ -224,11 +224,26 @@ import { parse } from 'path';
             });
          let selectedCustomer= res.data.customers.find(s=> s.id ==1000);
             let product_heads= res.data.product_heads.map((s)=>{
+                let total_purchase_qty = 0;
+                s.all_purchases.map((pr) => {
+                    total_purchase_qty = parseFloat(total_purchase_qty) + parseFloat(pr.total_qty) 
+                });
+                let total_sale_qty = 0;
+                s.all_sales.map((sl) => {
+                    if(sl.sale.invoice_type_id == 1){
+                        total_sale_qty += parseFloat(sl.total_qty) 
+                        // if(sl.product_head_id == 14)
+                        // alert(sl.total_qty);
+                    }
+                });
                 return  ({
                     label:s.title+"-"+s.brand.title,
                     value:s.id,
-                    price:parseFloat(s.stock.price),
-                    availableQty:parseFloat(s.stock.total_qty) - parseFloat(s.stock.out_qty)
+                    price:parseFloat(s.sale),
+                    availableQty:parseFloat(total_purchase_qty) - parseFloat(total_sale_qty),
+                    totalPurchaseQty:parseFloat(total_purchase_qty),
+                    totalSaleQty:parseFloat(total_sale_qty)
+
                 })
             });
           self.setState({
@@ -368,15 +383,17 @@ import { parse } from 'path';
 
         );
         if(product.availableQty > 0){
-
                 let check =   this.state.selectedProductHeads.find(sph =>
 
                     sph.id === e.value
 
                 );
                     if (check){
-
-                        if(product.availableQty > check.qty){
+                        console.log('avlQty='+product.availableQty+',qty='+check.qty);
+                        let totalOut = parseFloat(product.totalSaleQty) + parseFloat(check.qty)
+                        console.log('totalOut='+totalOut+',prqty='+product.totalPurchaseQty);
+                        // if(product.availableQty > check.qty){
+                        if(totalOut+1 <= parseFloat(product.totalPurchaseQty)){
 
                             const selectedProductHeads =  this.state.selectedProductHeads.map(sp=>  sp.id == e.value  ?
                                 {...sp, qty:sp.qty+1}
@@ -423,7 +440,6 @@ import { parse } from 'path';
         }
 
         else{
-
             this.setState({
                 ...this.state,
                 show:true
@@ -440,8 +456,9 @@ import { parse } from 'path';
             ph.value == e.target.id
 
         );
-
-        if(qty <= product.availableQty){
+        let totalOut = parseFloat(product.totalSaleQty) + parseFloat(qty)
+    //    if(qty <= product.availableQty ){
+        if(totalOut <= parseFloat(product.totalPurchaseQty) ){
 
             let selectedProductHeads;
 
@@ -785,11 +802,11 @@ import { parse } from 'path';
                 <header className="col-md-12">
 
                 </header>
-            {/* <SweetAlert
+            <SweetAlert
                                 show={this.state.show}
                                 title="Out of stock"
                                 onConfirm={() => this.setState({ show: false })}
-                            /> */}
+                            />
 
                 <div className="col-sm-12">
                                 <div className="white-box">
